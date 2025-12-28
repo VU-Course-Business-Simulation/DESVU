@@ -179,21 +179,19 @@ TEST_CASE("StatsCollector mixed statistics", "[stats_collector]") {
 TEST_CASE("StatsCollector realistic simulation scenario", "[stats_collector]") {
   StatsCollector stats;
 
-  // Simulate a queue system
-  // Customer 1
-  stats.Add("Interarrival Time", 1.5);
-  stats.Add("Queue Length", 0.0, 0);
-  stats.Add("Queue Length", 1.5, 1);
-  stats.Add("Waiting Time", 0.0);
-  stats.Add("Service Time", 2.0);
-  stats.Add("Queue Length", 3.5, 0);
+  // Simulate a queue system with two customers
 
-  // Customer 2
-  stats.Add("Interarrival Time", 1.0);
-  stats.Add("Queue Length", 2.5, 1);
-  stats.Add("Waiting Time", 1.0);
-  stats.Add("Service Time", 1.5);
-  stats.Add("Queue Length", 5.0, 0);
+  // Customer 1 arrives at time 1.5
+  stats.Add("Interarrival Time", 1.5);
+  stats.Add("Waiting Time", 0.0);
+  stats.Add("Service Time", 4.0);
+
+  // Customer 2 arrives at time 4.0
+  stats.Add("Interarrival Time", 2.5);
+  stats.Add("Service Time", 2.0);
+  stats.Add("Queue Length", 4.0, 1);
+  stats.Add("Queue Length", 5.5, 0);
+  stats.Add("Waiting Time", 1.5);          // Waits 1.0 time units
 
   // Verify statistics exist
   REQUIRE(stats.HasDiscrete("Waiting Time"));
@@ -206,10 +204,30 @@ TEST_CASE("StatsCollector realistic simulation scenario", "[stats_collector]") {
   REQUIRE(waiting->Count() == 2);
 
   const auto* queue = stats.GetTimeWeighted("Queue Length");
-  REQUIRE(queue->Count() == 6);  // Constructor + 5 updates
+  REQUIRE(queue->Count() == 3);  // Constructor + 2 updates
 
   // Generate report
   std::string report = stats.Report(10.0);
   REQUIRE_FALSE(report.empty());
+}
+
+// Test that adding time-weighted observation with backward time throws error
+TEST_CASE("StatsCollector backward time error", "[stats_collector]") {
+  StatsCollector collector;
+
+  collector.Add("Queue Length", 0.0, 0);
+  collector.Add("Queue Length", 5.0, 3);
+
+  // Trying to add at time 3.0 (before previous time 5.0) should throw
+  REQUIRE_THROWS_AS(collector.Add("Queue Length", 3.0, 2), std::invalid_argument);
+
+  // Adding at same time should work (time >= last_time)
+  collector.Add("Queue Length", 5.0, 4);
+
+  // Adding at later time should work
+  collector.Add("Queue Length", 7.0, 1);
+
+  const auto* queue = collector.GetTimeWeighted("Queue Length");
+  REQUIRE(queue->Count() == 5);  // Constructor + 4 successful updates
 }
 

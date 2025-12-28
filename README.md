@@ -4,7 +4,7 @@
 ![Header-Only](https://img.shields.io/badge/header--only-yes-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-A lightweight, educational discrete event simulation (DES) library designed for teaching simulation concepts at Vrije Universiteit Amsterdam.
+A lightweight, educational discrete event simulation (DES) library designed for teaching simulation concepts at Vrije Universiteit Amsterdam (VU).
 
 ## Features
 

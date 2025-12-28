@@ -128,9 +128,14 @@ TEST_CASE("TimeWeightedStats end time before last update", "[time_weighted_stats
   stats.Update(0.0, 10.0);
   stats.Update(5.0, 20.0);
 
-  // Average up to time 3 (before second update)
-  // Only the first segment [0, 3) with value 10
-  REQUIRE(stats.Average(3.0) == 10.0);
+  // Trying to get average at time 3 (before second update at time 5) should throw
+  REQUIRE_THROWS_AS(stats.Average(3.0), std::invalid_argument);
+
+  // Average at time equal to last update should work
+  REQUIRE(stats.Average(5.0) == 10.0);  // (10*5) / 5 = 10
+
+  // Average after last update should work
+  REQUIRE(stats.Average(10.0) == 15.0);  // (10*5 + 20*5) / 10 = 150/10 = 15
 }
 
 // Test realistic queue example

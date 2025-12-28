@@ -75,12 +75,16 @@ class TimeWeightedStats {
    * @brief Computes the time-weighted average.
    *
    * Call this at the end of the simulation with the final time to include
-   * the last interval.
+   * the last interval. The end_time must be >= the last update time.
    *
-   * @param end_time The end time of the simulation
+   * @param end_time The end time of the simulation (must be >= last_time_)
    * @return Time-weighted average
+   * @throws std::invalid_argument if end_time < last_time_
    */
   double Average(double end_time) const {
+    if (end_time < last_time_) {
+      throw std::invalid_argument("Average time must be >= last update time");
+    }
     if (end_time <= 0.0) return 0.0;
     double total_integral = integral_ + last_value_ * (end_time - last_time_);
     return total_integral / end_time;
