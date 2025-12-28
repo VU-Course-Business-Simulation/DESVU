@@ -26,7 +26,6 @@ A lightweight, educational discrete event simulation (DES) library designed for 
 - [API Reference](#api-reference)
 - [Quick Reference](#quick-reference)
 - [Building and Testing](#building-and-testing)
-- [Examples](#examples)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -34,35 +33,37 @@ A lightweight, educational discrete event simulation (DES) library designed for 
 
 ## Quick Start
 
-Here's a minimal M/M/1 queue simulation:
+Here's a simple discrete event simulation that prints a message:
 
 ```cpp
 #include <desvu/desvu.h>
-#include <random>
+#include <iostream>
 #include <memory>
 
-std::mt19937 rng(42);
-std::exponential_distribution<> arrival_dist(0.8);
-std::exponential_distribution<> service_dist(1.0);
-
-class ArrivalEvent : public desvu::Event {
+class PrintEvent : public desvu::Event {
 public:
-    explicit ArrivalEvent(double delay) : Event(delay) {}
-    void action(desvu::Simulator& sim) override;
+    explicit PrintEvent(double delay) : Event(delay) {}
+    
+    void action(desvu::Simulator& sim) override {
+        std::cout << "Event executed at time " << sim.now() << "\n";
+    }
 };
-
-// Implement event logic...
 
 int main() {
     desvu::Simulator sim;
-    auto first_arrival = std::make_shared<ArrivalEvent>(0.0);
-    sim.schedule(first_arrival);
-    sim.run(10000.0);
+    auto event = std::make_shared<PrintEvent>(5.0);
+    sim.schedule(event);
+    sim.run(10.0);
     return 0;
 }
 ```
 
-See [`examples/simple_queue.cpp`](examples/simple_queue.cpp) for the complete implementation.
+**Output:**
+```
+Event executed at time 5
+```
+
+For a complete M/M/1 queueing system example with arrivals, service, and statistics, see [`examples/simple_queue.cpp`](examples/simple_queue.cpp).
 
 ---
 
@@ -121,7 +122,7 @@ public:
 };
 ```
 
-**Key Pattern**: Separate event class declarations from implementations to allow forward references:
+**Key Pattern**: When scheduling an event of a type that has not been fully defined yet, you must first declare all event classes before implementing their `action()` methods. This allows forward references:
 
 ```cpp
 // Declare both classes first
@@ -139,9 +140,9 @@ public:
 
 // Then implement action() methods
 void ArrivalEvent::action(desvu::Simulator& sim) {
-    // Can now create DepartureEvent here
+    // Can now create and schedule DepartureEvent
     auto departure = std::make_shared<DepartureEvent>(service_time);
-    sim.schedule(departure);  // No cast needed!
+    sim.schedule(departure);
 }
 ```
 
@@ -246,7 +247,7 @@ Container for managing multiple statistics.
 auto event = std::make_shared<MyEvent>(delay);
 sim.schedule(event);
 
-// Cancel an event
+// Cancel a scheduled event (the action will not be executed)
 event->cancel();
 ```
 
@@ -282,23 +283,6 @@ stats.Add("Utilization", sim.now(), server_busy ? 1.0 : 0.0);
 // Waiting time (discrete)
 stats.Add("Waiting Time", sim.now() - arrival_time);
 ```
-
-### Common Formulas
-
-#### M/M/1 Queue Theory
-```
-ρ = λ/μ               (traffic intensity)
-L_q = ρ²/(1-ρ)        (avg queue length)
-W_q = ρ/(μ(1-ρ))      (avg waiting time)
-L = ρ/(1-ρ)           (avg in system)
-W = 1/(μ-λ)           (avg time in system)
-```
-
-#### Little's Law
-```
-L = λW
-```
-Average in system = arrival rate × average time in system
 
 ---
 
@@ -339,36 +323,13 @@ ctest --output-on-failure
 
 ---
 
-## Examples
-
-### Simple Queue (`examples/simple_queue.cpp`)
-
-A basic M/M/1 queueing system demonstrating:
-- Customer arrivals (Poisson process)
-- Single server with exponential service times
-- Queue management (FIFO)
-- Statistics collection (waiting times, queue length, server utilization)
-- Comparison with theoretical values
-
-**Learning objectives**: Event scheduling, basic queue operations, statistics collection
-
-**To modify**:
-- Change arrival/service rates (try ρ > 1 for unstable system)
-- Add multiple servers (M/M/c queue)
-- Implement different distributions
-- Add priority queues or customer impatience
-
-See [`examples/README.md`](examples/README.md) for detailed information.
-
----
-
 ## Contributing
 
 Contributions are welcome! This is an educational project, so clarity and documentation are paramount.
 
 ### Guidelines
 
-- **Follow Google C++ Style Guide**
+- **Follow [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)**
 - **Add comprehensive Doxygen comments**
 - **Include tests for new features** (use Catch2)
 - **Keep examples simple** and well-explained
@@ -385,6 +346,9 @@ Contributions are welcome! This is an educational project, so clarity and docume
 
 ### Code Style
 
+This project follows the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html).
+
+Quick reference:
 - Files: `snake_case.h`
 - Classes: `PascalCase`
 - Functions: `PascalCase` (public), `snake_case` (private)
@@ -406,7 +370,7 @@ TEST_CASE("Description", "[category]") {
 }
 ```
 
-For more details, see the [full contributing guide](docs/contributing.md) (if exists) or examine existing tests in `tests/`.
+Examine existing tests in `tests/` for more examples.
 
 ---
 
@@ -454,7 +418,6 @@ desvu/
 ├── CMakeLists.txt              # Root build configuration
 ├── README.md                   # This file
 ├── LICENSE                     # MIT License
-├── CHANGELOG.md                # Version history
 ├── include/
 │   └── desvu/
 │       ├── desvu.h            # Main header (includes all)
@@ -487,11 +450,11 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Authors
 
-Created for teaching discrete event simulation at Vrije Universiteit Amsterdam.
+Created by Joost Berkhout, Assistant Professor at Vrije Universiteit Amsterdam, for teaching discrete event simulation.
 
 ---
 
 ## Acknowledgments
 
-Inspired by classic DES frameworks like SimPy (Python) and SSJ (Java), adapted for C++ education.
+Inspired by the SSJ (Stochastic Simulation in Java) library, adapted for C++ education.
 
