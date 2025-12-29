@@ -63,7 +63,7 @@ int main() {
 Event executed at time 5
 ```
 
-For a complete M/M/1 queueing system example with arrivals, service, and statistics, see [`examples/simple_queue.cpp`](examples/simple_queue.cpp).
+For a complete M/M/1 queueing system example with arrivals, service, and statistics, see [`examples/simple_queue.cpp`](examples/simple_queue.cpp). TODO: Add more examples (G/G/c).
 
 ---
 
@@ -72,29 +72,31 @@ For a complete M/M/1 queueing system example with arrivals, service, and statist
 ### Method 1: CMake FetchContent (Recommended)
 
 ```cmake
-include(FetchContent)
+# Disable building tests and examples for DESVU.
+# These options are defined in the DESVU repository's CMakeLists.txt.
+# The description strings (3rd parameter) appear in CMake GUI tools.
+set(DESVU_BUILD_TESTS OFF CACHE BOOL "Build DESVU tests" FORCE)
+set(DESVU_BUILD_EXAMPLES OFF CACHE BOOL "Build DESVU examples" FORCE)
 
+# Declare the DESVU library with its Git repository location
+# GIT_TAG specifies the branch or version to fetch
 FetchContent_Declare(
-  desvu
-  GIT_REPOSITORY https://github.com/yourusername/desvu.git
-  GIT_TAG        main
+    desvu
+    GIT_REPOSITORY https://github.com/VU-Course-Business-Simulation/DESVU.git
+    GIT_TAG main  # Using main branch; could be changed to a specific version tag like v1.0.0
 )
+
+# Download and make the DESVU library available to the project
+# The library target 'desvu' will be created by the repository's CMakeLists.txt
+# as an INTERFACE library with the correct include directories
 FetchContent_MakeAvailable(desvu)
 
+add_executable(your_target main.cpp)
+
 target_link_libraries(your_target PRIVATE desvu)
 ```
 
-### Method 2: Git Submodule
-
-```bash
-git submodule add https://github.com/yourusername/desvu.git external/desvu
-
-# In CMakeLists.txt:
-add_subdirectory(external/desvu)
-target_link_libraries(your_target PRIVATE desvu)
-```
-
-### Method 3: Direct Include
+### Method 2: Direct Include
 
 Copy `include/desvu/` to your project:
 
@@ -190,6 +192,8 @@ std::cout << stats.Report(sim.now()) << "\n";
 ---
 
 ## API Reference
+
+TODO: Organize elsewhere.
 
 ### `desvu::Event`
 Abstract base class for simulation events.
@@ -288,10 +292,12 @@ stats.Add("Waiting Time", sim.now() - arrival_time);
 
 ## Building and Testing
 
+TODO: Check correctness.
+
 ### Clone and Build
 
 ```bash
-git clone https://github.com/yourusername/desvu.git
+git clone https://github.com/VU-Course-Business-Simulation/DESVU.git
 cd desvu
 mkdir build && cd build
 cmake ..
@@ -378,7 +384,7 @@ Examine existing tests in `tests/` for more examples.
 
 This library is designed for teaching discrete event simulation in operations research and computer science courses. It demonstrates:
 
-- **Event-driven programming**: Understanding callbacks and event handlers
+- **Event-driven programming**: Understanding event handlers
 - **Priority queues**: How events are ordered by time
 - **Statistical analysis**: Collecting and interpreting simulation results
 - **Stochastic modeling**: Using random variables in simulation
@@ -397,7 +403,6 @@ This library is designed for teaching discrete event simulation in operations re
 - Use as a teaching tool for DES concepts
 - Assign modification exercises
 - Compare simulation vs. analytical results
-- Demonstrate Little's Law and other queueing theory concepts
 
 ---
 
@@ -408,6 +413,8 @@ This library is designed for teaching discrete event simulation in operations re
 - **Catch2** (automatically fetched for testing)
 
 Compatible with GCC 7+, Clang 5+, MSVC 2017+, AppleClang 10+
+
+TODO: Check correctness of compatibability -> Github Actions?
 
 ---
 
