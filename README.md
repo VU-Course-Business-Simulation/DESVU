@@ -243,7 +243,6 @@ Container for managing multiple statistics.
 - **Method**: `void Add(const std::string& name, double value)` - Add event-based observation
 - **Method**: `void Add(const std::string& name, double time, double value)` - Add time-weighted observation
 - **Method**: `const EventStats* GetEvent(const std::string& name) const` - Get event-based statistic
-- **Method**: `const EventStats* GetDiscrete(const std::string& name) const` - Legacy name for GetEvent
 - **Method**: `const TimeWeightedStats* GetTimeWeighted(const std::string& name) const`
 - **Method**: `std::string Report(double end_time) const` - Generate full report
 

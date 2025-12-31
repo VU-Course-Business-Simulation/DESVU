@@ -329,7 +329,7 @@ Students are encouraged to modify these examples to explore different scenarios:
 
 ## Understanding the Output
 
-### Discrete Statistics
+### Event Statistics
 - **Count**: Number of observations
 - **Average**: Arithmetic mean
 - **Std Dev**: Standard deviation (measure of variability)

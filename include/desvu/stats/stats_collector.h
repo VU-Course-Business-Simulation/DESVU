@@ -76,15 +76,6 @@ class StatsCollector {
     return nullptr;
   }
 
-  /**
-   * @brief Gets an event-based statistic by name (legacy name).
-   * @deprecated Use GetEvent() instead
-   * @param name The name of the statistic
-   * @return Pointer to the EventStats, or nullptr if not found
-   */
-  const EventStats* GetDiscrete(const std::string& name) const {
-    return GetEvent(name);
-  }
 
   /**
    * @brief Gets a time-weighted statistic by name.
@@ -109,14 +100,6 @@ class StatsCollector {
   }
 
   /**
-   * @brief Checks if an event-based statistic exists (legacy name).
-   * @deprecated Use HasEvent() instead
-   * @param name The name to check
-   * @return true if the statistic exists
-   */
-  bool HasDiscrete(const std::string& name) const { return HasEvent(name); }
-
-  /**
    * @brief Checks if a time-weighted statistic exists.
    * @param name The name to check
    * @return true if the statistic exists
@@ -137,13 +120,6 @@ class StatsCollector {
     }
     return names;
   }
-
-  /**
-   * @brief Gets all event-based statistic names (legacy name).
-   * @deprecated Use EventNames() instead
-   * @return Vector of names
-   */
-  std::vector<std::string> DiscreteNames() const { return EventNames(); }
 
   /**
    * @brief Gets all time-weighted statistic names.

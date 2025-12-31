@@ -12,7 +12,7 @@ using namespace desvu;
 // Test basic construction
 TEST_CASE("StatsCollector construction", "[stats_collector]") {
   StatsCollector collector;
-  REQUIRE_FALSE(collector.HasDiscrete("Test"));
+  REQUIRE_FALSE(collector.HasEvent("Test"));
   REQUIRE_FALSE(collector.HasTimeWeighted("Test"));
 }
 
@@ -24,9 +24,9 @@ TEST_CASE("StatsCollector add event-based observations", "[stats_collector]") {
   collector.Add("Waiting Time", 7.0);
   collector.Add("Waiting Time", 3.0);
 
-  REQUIRE(collector.HasDiscrete("Waiting Time"));
+  REQUIRE(collector.HasEvent("Waiting Time"));
 
-  const EventStats* stats = collector.GetDiscrete("Waiting Time");
+  const EventStats* stats = collector.GetEvent("Waiting Time");
   REQUIRE(stats != nullptr);
   REQUIRE(stats->Count() == 3);
   REQUIRE(stats->Average() == 5.0);
@@ -55,12 +55,12 @@ TEST_CASE("StatsCollector automatic creation", "[stats_collector]") {
 
   // First call should create the statistic
   collector.Add("New Stat", 10.0);
-  REQUIRE(collector.HasDiscrete("New Stat"));
+  REQUIRE(collector.HasEvent("New Stat"));
 
   // Second call should use existing statistic
   collector.Add("New Stat", 20.0);
 
-  const EventStats* stats = collector.GetDiscrete("New Stat");
+  const EventStats* stats = collector.GetEvent("New Stat");
   REQUIRE(stats->Count() == 2);
 }
 
@@ -73,11 +73,11 @@ TEST_CASE("StatsCollector multiple statistics", "[stats_collector]") {
   collector.Add("Stat C", 0.0, 5.0);
   collector.Add("Stat D", 0.0, 10.0);
 
-  REQUIRE(collector.HasDiscrete("Stat A"));
-  REQUIRE(collector.HasDiscrete("Stat B"));
+  REQUIRE(collector.HasEvent("Stat A"));
+  REQUIRE(collector.HasEvent("Stat B"));
   REQUIRE(collector.HasTimeWeighted("Stat C"));
   REQUIRE(collector.HasTimeWeighted("Stat D"));
-  REQUIRE_FALSE(collector.HasDiscrete("Stat C"));
+  REQUIRE_FALSE(collector.HasEvent("Stat C"));
   REQUIRE_FALSE(collector.HasTimeWeighted("Stat A"));
 }
 
@@ -85,7 +85,7 @@ TEST_CASE("StatsCollector multiple statistics", "[stats_collector]") {
 TEST_CASE("StatsCollector get non-existent", "[stats_collector]") {
   StatsCollector collector;
 
-  REQUIRE(collector.GetDiscrete("NonExistent") == nullptr);
+  REQUIRE(collector.GetEvent("NonExistent") == nullptr);
   REQUIRE(collector.GetTimeWeighted("NonExistent") == nullptr);
 }
 
@@ -97,7 +97,7 @@ TEST_CASE("StatsCollector get event-based names", "[stats_collector]") {
   collector.Add("Service Time", 3.0);
   collector.Add("Interarrival Time", 2.0);
 
-  auto names = collector.DiscreteNames();
+  auto names = collector.EventNames();
   REQUIRE(names.size() == 3);
 
   // Check all names are present (order not guaranteed with unordered_map)
@@ -168,13 +168,13 @@ TEST_CASE("StatsCollector mixed statistics", "[stats_collector]") {
   collector.Add("Queue Length", 0.0, 0.0);
   collector.Add("Server Busy", 0.0, 0.0);
 
-  REQUIRE(collector.DiscreteNames().size() == 2);
+  REQUIRE(collector.EventNames().size() == 2);
   REQUIRE(collector.TimeWeightedNames().size() == 2);
 
-  REQUIRE(collector.GetDiscrete("Waiting Time") != nullptr);
+  REQUIRE(collector.GetEvent("Waiting Time") != nullptr);
   REQUIRE(collector.GetTimeWeighted("Queue Length") != nullptr);
   REQUIRE(collector.GetTimeWeighted("Waiting Time") == nullptr);
-  REQUIRE(collector.GetDiscrete("Queue Length") == nullptr);
+  REQUIRE(collector.GetEvent("Queue Length") == nullptr);
 }
 
 // Test realistic simulation scenario
@@ -196,13 +196,13 @@ TEST_CASE("StatsCollector realistic simulation scenario", "[stats_collector]") {
   stats.Add("Waiting Time", 1.5);  // Waits 1.0 time units
 
   // Verify statistics exist
-  REQUIRE(stats.HasDiscrete("Waiting Time"));
-  REQUIRE(stats.HasDiscrete("Service Time"));
-  REQUIRE(stats.HasDiscrete("Interarrival Time"));
+  REQUIRE(stats.HasEvent("Waiting Time"));
+  REQUIRE(stats.HasEvent("Service Time"));
+  REQUIRE(stats.HasEvent("Interarrival Time"));
   REQUIRE(stats.HasTimeWeighted("Queue Length"));
 
   // Verify counts
-  const auto* waiting = stats.GetDiscrete("Waiting Time");
+  const auto* waiting = stats.GetEvent("Waiting Time");
   REQUIRE(waiting->Count() == 2);
 
   const auto* queue = stats.GetTimeWeighted("Queue Length");
