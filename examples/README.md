@@ -21,8 +21,8 @@ This directory contains an educational example demonstrating discrete event simu
 - `DepartureEvent`: Customer completes service and leaves
 
 **Statistics Collected**:
-- Waiting time (discrete)
-- Service time (discrete)
+- Waiting time (event-based)
+- Service time (event-based)
 - Queue length (time-weighted)
 - Server utilization (time-weighted)
 
@@ -36,7 +36,7 @@ This directory contains an educational example demonstrating discrete event simu
 - Traffic intensity (ρ = λ/μ)
 - Stability condition (ρ < 1)
 - Little's Law
-- Time-weighted vs. discrete statistics
+- Time-weighted vs. event-based statistics
 
 **To Run**:
 ```bash
@@ -109,7 +109,7 @@ Students are encouraged to modify this example to explore different scenarios:
 
 ## Understanding the Output
 
-### Discrete Statistics
+### Event-Based Statistics
 - **Count**: Number of observations
 - **Average**: Arithmetic mean
 - **Std Dev**: Standard deviation (measure of variability)
@@ -172,8 +172,8 @@ If you encounter problems or have questions about the example:
 - `DepartureEvent`: Customer completes service and leaves
 
 **Statistics Collected**:
-- Waiting time (discrete)
-- Service time (discrete)
+- Waiting time (event-based)
+- Service time (event-based)
 - Queue length (time-weighted)
 - Server utilization (time-weighted)
 
@@ -187,7 +187,7 @@ If you encounter problems or have questions about the example:
 - Traffic intensity (ρ = λ/μ)
 - Stability condition (ρ < 1)
 - Little's Law
-- Time-weighted vs. discrete statistics
+- Time-weighted vs. event-based statistics
 
 **To Run**:
 ```bash
@@ -223,10 +223,10 @@ If you encounter problems or have questions about the example:
 - `RepairCompletionEvent`: Machine is repaired and ready
 
 **Statistics Collected**:
-- Waiting time (discrete)
-- Processing time (discrete)
-- Time in system (discrete)
-- Repair time (discrete)
+- Waiting time (event-based)
+- Processing time (event-based)
+- Time in system (event-based)
+- Repair time (event-based)
 - Queue length (time-weighted)
 - Machine state (time-weighted): idle, processing, or failed
 
@@ -376,4 +376,3 @@ If you encounter problems or have questions about the examples:
 ---
 
 **Happy Simulating!** 🎲
-

@@ -4,6 +4,7 @@
  */
 
 #include <desvu/desvu.h>
+
 #include <catch2/catch_test_macros.hpp>
 #include <memory>
 #include <vector>
@@ -18,9 +19,7 @@ class TestEvent : public Event {
   explicit TestEvent(double delay, double* exec_time)
       : Event(delay), execution_time(exec_time) {}
 
-  void action(Simulator& sim) override {
-    *execution_time = sim.now();
-  }
+  void action(Simulator& sim) override { *execution_time = sim.now(); }
 };
 
 // Event that schedules another event
@@ -69,7 +68,7 @@ TEST_CASE("Simulator event order", "[simulator]") {
 
   sim.run();
 
-  REQUIRE(exec_time2 == 5.0);   // Second scheduled, first executed
+  REQUIRE(exec_time2 == 5.0);  // Second scheduled, first executed
   REQUIRE(exec_time1 == 10.0);
   REQUIRE(exec_time3 == 15.0);
   REQUIRE(sim.now() == 15.0);
@@ -148,4 +147,3 @@ TEST_CASE("Simulator run until empty", "[simulator]") {
   REQUIRE(exec_time == 100.0);
   REQUIRE(sim.now() == 100.0);
 }
-

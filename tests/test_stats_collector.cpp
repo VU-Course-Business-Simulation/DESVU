@@ -4,6 +4,7 @@
  */
 
 #include <desvu/desvu.h>
+
 #include <catch2/catch_test_macros.hpp>
 
 using namespace desvu;
@@ -15,8 +16,8 @@ TEST_CASE("StatsCollector construction", "[stats_collector]") {
   REQUIRE_FALSE(collector.HasTimeWeighted("Test"));
 }
 
-// Test adding discrete observations
-TEST_CASE("StatsCollector add discrete observations", "[stats_collector]") {
+// Test adding event-based observations
+TEST_CASE("StatsCollector add event-based observations", "[stats_collector]") {
   StatsCollector collector;
 
   collector.Add("Waiting Time", 5.0);
@@ -25,14 +26,15 @@ TEST_CASE("StatsCollector add discrete observations", "[stats_collector]") {
 
   REQUIRE(collector.HasDiscrete("Waiting Time"));
 
-  const DiscreteStats* stats = collector.GetDiscrete("Waiting Time");
+  const EventStats* stats = collector.GetDiscrete("Waiting Time");
   REQUIRE(stats != nullptr);
   REQUIRE(stats->Count() == 3);
   REQUIRE(stats->Average() == 5.0);
 }
 
 // Test adding time-weighted observations
-TEST_CASE("StatsCollector add time-weighted observations", "[stats_collector]") {
+TEST_CASE("StatsCollector add time-weighted observations",
+          "[stats_collector]") {
   StatsCollector collector;
 
   collector.Add("Queue Length", 0.0, 0.0);
@@ -58,7 +60,7 @@ TEST_CASE("StatsCollector automatic creation", "[stats_collector]") {
   // Second call should use existing statistic
   collector.Add("New Stat", 20.0);
 
-  const DiscreteStats* stats = collector.GetDiscrete("New Stat");
+  const EventStats* stats = collector.GetDiscrete("New Stat");
   REQUIRE(stats->Count() == 2);
 }
 
@@ -87,8 +89,8 @@ TEST_CASE("StatsCollector get non-existent", "[stats_collector]") {
   REQUIRE(collector.GetTimeWeighted("NonExistent") == nullptr);
 }
 
-// Test getting discrete names
-TEST_CASE("StatsCollector get discrete names", "[stats_collector]") {
+// Test getting event-based names
+TEST_CASE("StatsCollector get event-based names", "[stats_collector]") {
   StatsCollector collector;
 
   collector.Add("Waiting Time", 5.0);
@@ -154,11 +156,11 @@ TEST_CASE("StatsCollector empty report", "[stats_collector]") {
   REQUIRE(report.find("Statistics Report") != std::string::npos);
 }
 
-// Test mixed discrete and time-weighted
+// Test mixed event-based and time-weighted
 TEST_CASE("StatsCollector mixed statistics", "[stats_collector]") {
   StatsCollector collector;
 
-  // Add several discrete
+  // Add several event-based
   collector.Add("Waiting Time", 5.0);
   collector.Add("Service Time", 3.0);
 
@@ -191,7 +193,7 @@ TEST_CASE("StatsCollector realistic simulation scenario", "[stats_collector]") {
   stats.Add("Service Time", 2.0);
   stats.Add("Queue Length", 4.0, 1);
   stats.Add("Queue Length", 5.5, 0);
-  stats.Add("Waiting Time", 1.5);          // Waits 1.0 time units
+  stats.Add("Waiting Time", 1.5);  // Waits 1.0 time units
 
   // Verify statistics exist
   REQUIRE(stats.HasDiscrete("Waiting Time"));
@@ -219,7 +221,8 @@ TEST_CASE("StatsCollector backward time error", "[stats_collector]") {
   collector.Add("Queue Length", 5.0, 3);
 
   // Trying to add at time 3.0 (before previous time 5.0) should throw
-  REQUIRE_THROWS_AS(collector.Add("Queue Length", 3.0, 2), std::invalid_argument);
+  REQUIRE_THROWS_AS(collector.Add("Queue Length", 3.0, 2),
+                    std::invalid_argument);
 
   // Adding at same time should work (time >= last_time)
   collector.Add("Queue Length", 5.0, 4);
@@ -230,4 +233,3 @@ TEST_CASE("StatsCollector backward time error", "[stats_collector]") {
   const auto* queue = collector.GetTimeWeighted("Queue Length");
   REQUIRE(queue->Count() == 5);  // Constructor + 4 successful updates
 }
-

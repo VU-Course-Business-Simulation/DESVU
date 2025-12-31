@@ -11,23 +11,24 @@
 namespace desvu {
 
 /**
- * @brief Collects discrete observations and computes statistics.
+ * @brief Collects event-based observations and computes statistics.
  *
- * Use this for event-based measurements like waiting times, service times,
- * or any value that is observed at discrete points in time.
+ * Use this for measurements taken at specific events like waiting times,
+ * service times, or any value that is observed at specific points in time.
+ * Note: "Event-based" refers to when observations are recorded (at events),
+ * not the nature of the data (which can be continuous values).
  */
-class DiscreteStats {
+class EventStats {
  private:
   std::string name_;
   std::vector<double> observations_;
 
  public:
   /**
-   * @brief Constructs a new discrete statistics collector.
+   * @brief Constructs a new event-based statistics collector.
    * @param name Descriptive name for this statistic
    */
-  explicit DiscreteStats(const std::string& name)
-      : name_(name), observations_() {}
+  explicit EventStats(const std::string& name) : name_(name), observations_() {}
 
   /**
    * @brief Adds an observation.
@@ -102,7 +103,7 @@ class DiscreteStats {
   std::string Report() const {
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(4);
-    oss << name_ << " (Discrete)\n";
+    oss << name_ << " (Event-based)\n";
     oss << "  Count: " << Count() << "\n";
     oss << "  Average: " << Average() << "\n";
     oss << "  Std Dev: " << StandardDeviation() << "\n";

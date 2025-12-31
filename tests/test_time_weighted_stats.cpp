@@ -4,6 +4,7 @@
  */
 
 #include <desvu/desvu.h>
+
 #include <catch2/catch_test_macros.hpp>
 #include <stdexcept>
 
@@ -45,9 +46,9 @@ TEST_CASE("TimeWeightedStats multiple updates", "[time_weighted_stats]") {
 // Test time-weighted average calculation
 TEST_CASE("TimeWeightedStats time-weighted average", "[time_weighted_stats]") {
   TimeWeightedStats stats("Queue Length");
-  stats.Update(0.0, 0);   // 0 customers from t=0 to t=1
-  stats.Update(1.0, 2);   // 2 customers from t=1 to t=4
-  stats.Update(4.0, 1);   // 1 customer from t=4 to t=10
+  stats.Update(0.0, 0);  // 0 customers from t=0 to t=1
+  stats.Update(1.0, 2);  // 2 customers from t=1 to t=4
+  stats.Update(4.0, 1);  // 1 customer from t=4 to t=10
 
   // Average = (0*1 + 2*3 + 1*6) / 10 = 12/10 = 1.2
   REQUIRE(stats.Average(10.0) == 1.2);
@@ -123,12 +124,14 @@ TEST_CASE("TimeWeightedStats report generation", "[time_weighted_stats]") {
 }
 
 // Test with end time before last update
-TEST_CASE("TimeWeightedStats end time before last update", "[time_weighted_stats]") {
+TEST_CASE("TimeWeightedStats end time before last update",
+          "[time_weighted_stats]") {
   TimeWeightedStats stats("Test");
   stats.Update(0.0, 10.0);
   stats.Update(5.0, 20.0);
 
-  // Trying to get average at time 3 (before second update at time 5) should throw
+  // Trying to get average at time 3 (before second update at time 5) should
+  // throw
   REQUIRE_THROWS_AS(stats.Average(3.0), std::invalid_argument);
 
   // Average at time equal to last update should work
@@ -139,18 +142,18 @@ TEST_CASE("TimeWeightedStats end time before last update", "[time_weighted_stats
 }
 
 // Test realistic queue example
-TEST_CASE("TimeWeightedStats realistic queue example", "[time_weighted_stats]") {
+TEST_CASE("TimeWeightedStats realistic queue example",
+          "[time_weighted_stats]") {
   TimeWeightedStats queue_length("Queue Length");
 
   // Simulate queue changes
-  queue_length.Update(0.0, 0);    // Start empty
-  queue_length.Update(1.5, 1);    // Customer arrives
-  queue_length.Update(2.0, 2);    // Another arrives
-  queue_length.Update(3.5, 1);    // One leaves
-  queue_length.Update(5.0, 0);    // Queue empty
+  queue_length.Update(0.0, 0);  // Start empty
+  queue_length.Update(1.5, 1);  // Customer arrives
+  queue_length.Update(2.0, 2);  // Another arrives
+  queue_length.Update(3.5, 1);  // One leaves
+  queue_length.Update(5.0, 0);  // Queue empty
 
   // Average = (0*1.5 + 1*0.5 + 2*1.5 + 1*1.5 + 0*5) / 10
   //         = (0 + 0.5 + 3 + 1.5 + 0) / 10 = 5/10 = 0.5
   REQUIRE(queue_length.Average(10.0) == 0.5);
 }
-

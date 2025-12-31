@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "discrete_stats.h"
+#include "event_stats.h"
 #include "time_weighted_stats.h"
 
 namespace desvu {
@@ -14,14 +14,13 @@ namespace desvu {
 /**
  * @brief Container for managing multiple statistics collectors.
  *
- * Provides a unified interface for collecting both discrete observations
+ * Provides a unified interface for collecting both event-based observations
  * and time-weighted statistics. Statistics are automatically created on
  * first use.
  */
 class StatsCollector {
  private:
-  std::unordered_map<std::string, std::unique_ptr<DiscreteStats>>
-      discrete_stats_;
+  std::unordered_map<std::string, std::unique_ptr<EventStats>> event_stats_;
   std::unordered_map<std::string, std::unique_ptr<TimeWeightedStats>>
       time_weighted_stats_;
 
@@ -32,7 +31,7 @@ class StatsCollector {
   StatsCollector() = default;
 
   /**
-   * @brief Adds a discrete observation.
+   * @brief Adds an event-based observation.
    *
    * Creates the statistic if it doesn't exist.
    *
@@ -40,11 +39,11 @@ class StatsCollector {
    * @param value The observed value
    */
   void Add(const std::string& name, double value) {
-    auto it = discrete_stats_.find(name);
-    if (it == discrete_stats_.end()) {
-      discrete_stats_[name] = std::make_unique<DiscreteStats>(name);
+    auto it = event_stats_.find(name);
+    if (it == event_stats_.end()) {
+      event_stats_[name] = std::make_unique<EventStats>(name);
     }
-    discrete_stats_[name]->Add(value);
+    event_stats_[name]->Add(value);
   }
 
   /**
@@ -65,16 +64,26 @@ class StatsCollector {
   }
 
   /**
-   * @brief Gets a discrete statistic by name.
+   * @brief Gets an event-based statistic by name.
    * @param name The name of the statistic
-   * @return Pointer to the DiscreteStats, or nullptr if not found
+   * @return Pointer to the EventStats, or nullptr if not found
    */
-  const DiscreteStats* GetDiscrete(const std::string& name) const {
-    auto it = discrete_stats_.find(name);
-    if (it != discrete_stats_.end()) {
+  const EventStats* GetEvent(const std::string& name) const {
+    auto it = event_stats_.find(name);
+    if (it != event_stats_.end()) {
       return it->second.get();
     }
     return nullptr;
+  }
+
+  /**
+   * @brief Gets an event-based statistic by name (legacy name).
+   * @deprecated Use GetEvent() instead
+   * @param name The name of the statistic
+   * @return Pointer to the EventStats, or nullptr if not found
+   */
+  const EventStats* GetDiscrete(const std::string& name) const {
+    return GetEvent(name);
   }
 
   /**
@@ -91,13 +100,21 @@ class StatsCollector {
   }
 
   /**
-   * @brief Checks if a discrete statistic exists.
+   * @brief Checks if an event-based statistic exists.
    * @param name The name to check
    * @return true if the statistic exists
    */
-  bool HasDiscrete(const std::string& name) const {
-    return discrete_stats_.find(name) != discrete_stats_.end();
+  bool HasEvent(const std::string& name) const {
+    return event_stats_.find(name) != event_stats_.end();
   }
+
+  /**
+   * @brief Checks if an event-based statistic exists (legacy name).
+   * @deprecated Use HasEvent() instead
+   * @param name The name to check
+   * @return true if the statistic exists
+   */
+  bool HasDiscrete(const std::string& name) const { return HasEvent(name); }
 
   /**
    * @brief Checks if a time-weighted statistic exists.
@@ -109,17 +126,24 @@ class StatsCollector {
   }
 
   /**
-   * @brief Gets all discrete statistic names.
+   * @brief Gets all event-based statistic names.
    * @return Vector of names
    */
-  std::vector<std::string> DiscreteNames() const {
+  std::vector<std::string> EventNames() const {
     std::vector<std::string> names;
-    names.reserve(discrete_stats_.size());
-    for (const auto& pair : discrete_stats_) {
+    names.reserve(event_stats_.size());
+    for (const auto& pair : event_stats_) {
       names.push_back(pair.first);
     }
     return names;
   }
+
+  /**
+   * @brief Gets all event-based statistic names (legacy name).
+   * @deprecated Use EventNames() instead
+   * @return Vector of names
+   */
+  std::vector<std::string> DiscreteNames() const { return EventNames(); }
 
   /**
    * @brief Gets all time-weighted statistic names.
@@ -144,7 +168,7 @@ class StatsCollector {
     oss << "=== Statistics Report ===\n";
 
     bool first = true;
-    for (const auto& pair : discrete_stats_) {
+    for (const auto& pair : event_stats_) {
       if (!first) oss << "\n\n";
       oss << pair.second->Report();
       first = false;

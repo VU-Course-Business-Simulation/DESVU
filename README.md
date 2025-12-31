@@ -10,7 +10,7 @@ A lightweight, educational discrete event simulation (DES) library designed for 
 
 - ✅ **Header-only** - Easy integration, just include and go
 - ✅ **Event-based simulation engine** - Schedule and execute events in chronological order
-- ✅ **Built-in statistics collection** - Discrete and time-weighted statistics
+- ✅ **Built-in statistics collection** - Event-based and time-weighted statistics
 - ✅ **Clear, documented API** - Designed specifically for learning
 - ✅ **Educational examples** - Complete working simulation with explanation
 - ✅ **Modern C++17** - Clean, modern code following best practices
@@ -158,11 +158,11 @@ The simulator manages time and executes events in chronological order:
 
 ### Statistics
 
-#### Discrete Statistics
-For measurements at discrete points in time (e.g., waiting times, service times):
+#### Event-Based Statistics
+For measurements taken at specific events (e.g., waiting times, service times):
 
 ```cpp
-desvu::DiscreteStats waiting_times("Waiting Time");
+desvu::EventStats waiting_times("Waiting Time");
 waiting_times.Add(5.2);
 waiting_times.Add(3.8);
 std::cout << "Average: " << waiting_times.Average() << "\n";
@@ -184,7 +184,7 @@ Manage multiple statistics with a unified interface:
 
 ```cpp
 desvu::StatsCollector stats;
-stats.Add("Waiting Time", 5.2);              // Discrete
+stats.Add("Waiting Time", 5.2);              // Event-based
 stats.Add("Queue Length", sim.now(), 3);      // Time-weighted
 std::cout << stats.Report(sim.now()) << "\n";
 ```
@@ -210,10 +210,10 @@ Discrete event simulation engine.
 - **Method**: `void schedule(std::shared_ptr<Event> event)` - Schedule an event
 - **Method**: `void run(double until = -1.0)` - Run simulation
 
-### `desvu::DiscreteStats`
-Statistics for discrete observations.
+### `desvu::EventStats`
+Statistics for event-based observations (recorded at specific events).
 
-- **Constructor**: `DiscreteStats(const std::string& name)`
+- **Constructor**: `EventStats(const std::string& name)`
 - **Method**: `void Add(double value)` - Add observation
 - **Method**: `double Average() const` - Compute mean
 - **Method**: `double StandardDeviation() const` - Compute std dev
@@ -233,9 +233,10 @@ Statistics for time-weighted values.
 ### `desvu::StatsCollector`
 Container for managing multiple statistics.
 
-- **Method**: `void Add(const std::string& name, double value)` - Add discrete observation
+- **Method**: `void Add(const std::string& name, double value)` - Add event-based observation
 - **Method**: `void Add(const std::string& name, double time, double value)` - Add time-weighted observation
-- **Method**: `const DiscreteStats* GetDiscrete(const std::string& name) const`
+- **Method**: `const EventStats* GetEvent(const std::string& name) const` - Get event-based statistic
+- **Method**: `const EventStats* GetDiscrete(const std::string& name) const` - Legacy name for GetEvent
 - **Method**: `const TimeWeightedStats* GetTimeWeighted(const std::string& name) const`
 - **Method**: `std::string Report(double end_time) const` - Generate full report
 
@@ -284,7 +285,7 @@ stats.Add("Queue Length", sim.now(), queue.size());
 // Server utilization (time-weighted)
 stats.Add("Utilization", sim.now(), server_busy ? 1.0 : 0.0);
 
-// Waiting time (discrete)
+// Waiting time (event-based)
 stats.Add("Waiting Time", sim.now() - arrival_time);
 ```
 
@@ -312,7 +313,7 @@ ctest --output-on-failure
 
 # Or run individual tests
 ./test_simulator
-./test_discrete_stats
+./test_event_stats
 ./test_time_weighted_stats
 ./test_stats_collector
 ```
@@ -432,13 +433,13 @@ desvu/
 │       │   ├── event.h        # Event base class
 │       │   └── simulator.h    # Simulation engine
 │       └── stats/
-│           ├── discrete_stats.h        # Discrete statistics
+│           ├── event_stats.h           # Event-based statistics
 │           ├── time_weighted_stats.h   # Time-weighted statistics
 │           └── stats_collector.h       # Statistics container
 ├── tests/
 │   ├── CMakeLists.txt
 │   ├── test_simulator.cpp
-│   ├── test_discrete_stats.cpp
+│   ├── test_event_stats.cpp
 │   ├── test_time_weighted_stats.cpp
 │   └── test_stats_collector.cpp
 └── examples/
@@ -464,4 +465,3 @@ Created by Joost Berkhout, Assistant Professor at Vrije Universiteit Amsterdam, 
 ## Acknowledgments
 
 Inspired by the SSJ (Stochastic Simulation in Java) library, adapted for C++ education.
-

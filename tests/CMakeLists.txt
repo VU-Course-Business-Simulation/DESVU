@@ -24,7 +24,7 @@ endfunction()
 
 # Create test executables
 add_desvu_test(test_simulator)
-add_desvu_test(test_discrete_stats)
+add_desvu_test(test_event_stats)
 add_desvu_test(test_time_weighted_stats)
 add_desvu_test(test_stats_collector)
 

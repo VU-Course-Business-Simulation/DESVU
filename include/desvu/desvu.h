@@ -11,8 +11,9 @@
  *   - Simulator: Discrete event simulation engine
  *
  * Statistics collection:
- *   - DiscreteStats: Statistics for discrete observations (e.g., waiting times)
- *   - TimeWeightedStats: Statistics for time-weighted values (e.g., queue length)
+ *   - EventStats: Statistics for event-based observations (e.g., waiting times)
+ *   - TimeWeightedStats: Statistics for time-weighted values (e.g., queue
+ * length)
  *   - StatsCollector: Manages multiple statistics with a unified interface
  *
  * @example
@@ -43,7 +44,7 @@
 #include "core/simulator.h"
 
 // Statistics
-#include "stats/discrete_stats.h"
+#include "stats/event_stats.h"
 #include "stats/stats_collector.h"
 #include "stats/time_weighted_stats.h"
 
@@ -54,9 +55,12 @@
  * A lightweight, header-only C++ library for teaching discrete event
  * simulation concepts. The library provides:
  *
- * - **Event-driven simulation**: Schedule and execute events in chronological order
- * - **Statistics collection**: Built-in tools for collecting and analyzing simulation data
- * - **Educational design**: Clear APIs and documentation for learning DES concepts
+ * - **Event-driven simulation**: Schedule and execute events in chronological
+ * order
+ * - **Statistics collection**: Built-in tools for collecting and analyzing
+ * simulation data
+ * - **Educational design**: Clear APIs and documentation for learning DES
+ * concepts
  *
  * The library follows the three-phase simulation approach:
  * 1. Initialize: Set up initial events and state
@@ -66,4 +70,3 @@
  * @see Simulator for the main simulation engine
  * @see Event for creating custom event types
  */
-
