@@ -1,11 +1,13 @@
 #pragma once
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <iomanip>
 #include <numeric>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace desvu {
@@ -53,17 +55,18 @@ class EventStats {
   }
 
   /**
-   * @brief Computes the standard deviation of all observations.
-   * @return Standard deviation, or 0.0 if no observations exist
+   * @brief Computes the sample standard deviation of all observations.
+   * @return Standard deviation, or 0.0 if less than 2 observations exist
    */
   double StandardDeviation() const {
-    if (observations_.empty()) return 0.0;
+    if (observations_.size() < 2) return 0.0;
     double avg = Average();
     double variance = 0.0;
     for (double val : observations_) {
       variance += (val - avg) * (val - avg);
     }
-    return std::sqrt(variance / static_cast<double>(observations_.size()));
+    double scale = static_cast<double>(observations_.size() - 1);
+    return std::sqrt(variance / scale);
   }
 
   /**
@@ -95,6 +98,57 @@ class EventStats {
    * @return Const reference to the observations vector
    */
   const std::vector<double>& Observations() const { return observations_; }
+
+  /**
+   * @brief Computes 95% confidence interval for the mean.
+   *
+   * For n > 30, uses normal approximation (z = 1.96).
+   * For n ≤ 30, uses t-distribution critical values.
+   *
+   * @return Pair of (lower_bound, upper_bound) for the confidence interval
+   * @throws std::invalid_argument if count < 2
+   */
+  std::pair<double, double> ConfidenceInterval95() const {
+    if (observations_.size() < 2) {
+      throw std::invalid_argument(
+          "Need at least 2 observations to compute confidence interval");
+    }
+
+    double mean = Average();
+    double std_dev = StandardDeviation();
+    size_t n = observations_.size();
+
+    // Compute standard error
+    double std_error = std_dev / std::sqrt(static_cast<double>(n));
+
+    double critical_value;
+
+    if (n > 30) {
+      // Use normal approximation for large samples
+      critical_value = 1.96;
+    } else {
+      // Use t-distribution critical values for small samples
+      // Approximate values for common sample sizes (95% CI, two-tailed)
+      static const double t_values[] = {
+          12.706, 4.303, 3.182, 2.776, 2.571,  // df = 1-5
+          2.447,  2.365, 2.306, 2.262, 2.228,  // df = 6-10
+          2.201,  2.179, 2.160, 2.145, 2.131,  // df = 11-15
+          2.120,  2.110, 2.101, 2.093, 2.086,  // df = 16-20
+          2.080,  2.074, 2.069, 2.064, 2.060,  // df = 21-25
+          2.056,  2.052, 2.048, 2.045          // df = 26-29
+      };  // See https://en.wikipedia.org/wiki/Student%27s_t-distribution
+
+      size_t df = n - 1;
+      // Assert df is in valid range for the table
+      assert(df > 0 && df <= 29);
+      critical_value = t_values[df - 1];
+    }
+
+    // Compute margin of error
+    double margin = critical_value * std_error;
+
+    return std::make_pair(mean - margin, mean + margin);
+  }
 
   /**
    * @brief Generates a formatted report of statistical summaries.

@@ -165,7 +165,13 @@ For measurements taken at specific events (e.g., waiting times, service times):
 desvu::EventStats waiting_times("Waiting Time");
 waiting_times.Add(5.2);
 waiting_times.Add(3.8);
+waiting_times.Add(4.5);
+waiting_times.Add(6.1);
 std::cout << "Average: " << waiting_times.Average() << "\n";
+
+// Compute 95% confidence interval for the mean
+auto [lower, upper] = waiting_times.ConfidenceInterval95();
+std::cout << "95% CI: [" << lower << ", " << upper << "]\n";
 ```
 
 #### Time-Weighted Statistics
@@ -219,6 +225,7 @@ Statistics for event-based observations (recorded at specific events).
 - **Method**: `double StandardDeviation() const` - Compute std dev
 - **Method**: `double Min() const` / `double Max() const` - Get extremes
 - **Method**: `size_t Count() const` - Get number of observations
+- **Method**: `std::pair<double, double> ConfidenceInterval(double confidence_level = 0.95) const` - Compute 95% confidence interval (only 95% supported)
 - **Method**: `std::string Report() const` - Generate formatted report
 
 ### `desvu::TimeWeightedStats`
