@@ -7,6 +7,7 @@
 #include <numeric>
 #include <sstream>
 #include <string>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -163,6 +164,12 @@ class EventStats {
     oss << "  Std Dev: " << StandardDeviation() << "\n";
     oss << "  Min: " << Min() << "\n";
     oss << "  Max: " << Max();
+    if (Count() >= 2) {
+      const auto ci = ConfidenceInterval95();
+      oss << "\n  95% CI: [" << ci.first << ", " << ci.second << "]";
+    } else {
+      oss << "\n  95% CI: N/A (need >= 2 observations)";
+    }
     return oss.str();
   }
 };

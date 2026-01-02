@@ -128,6 +128,7 @@ TEST_CASE("EventStats report generation", "[event_stats]") {
   REQUIRE(report.find("Std Dev") != std::string::npos);
   REQUIRE(report.find("Min") != std::string::npos);
   REQUIRE(report.find("Max") != std::string::npos);
+  REQUIRE(report.find("95% CI") != std::string::npos);
 }
 
 // Test identical values (zero variance)
@@ -168,10 +169,12 @@ TEST_CASE("EventStats confidence interval insufficient data",
 
   // No observations - should throw
   REQUIRE_THROWS_AS(stats.ConfidenceInterval95(), std::invalid_argument);
+  REQUIRE(stats.Report().find("N/A") != std::string::npos);
 
   // Only one observation - should throw
   stats.Add(5.0);
   REQUIRE_THROWS_AS(stats.ConfidenceInterval95(), std::invalid_argument);
+  REQUIRE(stats.Report().find("N/A") != std::string::npos);
 }
 
 // Test confidence interval - identical values (zero variance)
