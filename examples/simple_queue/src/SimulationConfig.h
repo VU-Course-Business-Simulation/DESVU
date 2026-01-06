@@ -10,7 +10,7 @@
  */
 struct SimulationConfig {
   // Simulation parameters
-  double simulation_time;  ///< Total simulation time
+  double sim_time;  ///< Total simulation time
   double arrival_rate;     ///< Customer arrival rate (λ)
   double service_rate;     ///< Service rate (μ)
 
@@ -31,20 +31,19 @@ struct SimulationConfig {
    * - Service rate (μ): 1.0 customers per time unit
    * - Traffic intensity (ρ = λ/μ): 0.8
    *
-   * @param simulation_time Total time to run the simulation
+   * @param sim_time Total time to run the simulation
    * @param arrival_rate Customer arrival rate (λ)
    * @param service_rate Service rate (μ)
    * @param seed Random seed for reproducibility (default: 42)
    */
-  explicit SimulationConfig(double simulation_time = 10000.0,
+  explicit SimulationConfig(double sim_time = 10000.0,
                             double arrival_rate = 0.8,
-                            double service_rate = 1.0,
-                            unsigned int seed = 42)
-      : simulation_time(simulation_time),
+                            double service_rate = 1.0, unsigned int seed = 42)
+      : sim_time(sim_time),
         arrival_rate(arrival_rate),
         service_rate(service_rate),
         arrival_rng(seed),
-        service_rng(seed + 1),
+        service_rng(seed + 11),  // + 11 to have different seeds
         interarrival_dist(arrival_rate),
         service_dist(service_rate) {}
 
@@ -66,4 +65,3 @@ struct SimulationConfig {
    */
   double TrafficIntensity() const { return arrival_rate / service_rate; }
 };
-

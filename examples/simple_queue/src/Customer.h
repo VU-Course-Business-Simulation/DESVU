@@ -24,4 +24,3 @@ class Customer {
     return current_time - arrival_time;
   }
 };
-

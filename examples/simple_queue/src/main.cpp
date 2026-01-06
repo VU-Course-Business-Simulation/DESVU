@@ -7,7 +7,7 @@
  * - Queue management (FIFO)
  * - Statistics collection (waiting time, queue length, utilization)
  * - Using random distributions (exponential for both arrivals and service)
- * - Running multiple replications for statistical accuracy
+ * - Running multiple runs for statistical accuracy
  *
  * M/M/1 Queue Model:
  * - M: Markovian (exponential) interarrival times
@@ -18,7 +18,7 @@
  * 1. Understanding discrete event simulation fundamentals
  * 2. Implementing event-driven logic
  * 3. Collecting and interpreting simulation statistics
- * 4. Running multiple replications for confidence intervals
+ * 4. Running multiple runs for confidence intervals
  */
 
 #include <desvu/desvu.h>
@@ -26,46 +26,49 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
-#include <vector>
 
 #include "Events.h"
 #include "Server.h"
 #include "SimulationConfig.h"
 
 /**
- * @brief Runs a single simulation replication.
+ * @brief Result structure returned by RunSimulation.
+ */
+struct SimRunResults {
+  double mean_waiting_time;  ///< Mean waiting time of jobs
+  double mean_queue_length;  ///< Mean queue length
+};
+
+/**
+ * @brief Runs a single simulation run.
  *
  * @param config Simulation configuration
  * @param verbose Whether to print event log
  * @return StatsCollector containing simulation results
  */
-desvu::StatsCollector RunSimulation(SimulationConfig& config,
-                                    bool verbose = false) {
+SimRunResults RunSimulation(SimulationConfig& config, bool verbose = false) {
   // Create simulator
   desvu::Simulator sim(verbose);
 
-  // Create statistics collector
-  desvu::StatsCollector stats;
-
-  // Initialize statistics
-  stats.Add("Queue Length", 0.0, 0.0);
-  stats.Add("Server Utilization", 0.0, 0.0);
-
   // Create server
-  Server server(config, stats);
+  Server server(sim, config);
 
-  // Customer counter
-  int customers_arrived = 0;
-
-  // Schedule first arrival at time 0
-  auto first_arrival = std::make_shared<ArrivalEvent>(0.0, &server, config,
-                                                      customers_arrived);
+  // Schedule first arrival
+  double first_delay = config.NextInterarrivalTime();
+  auto first_arrival =
+      std::make_shared<ArrivalEvent>(first_delay, &server, config);
   sim.Schedule(first_arrival);
 
   // Run simulation
-  sim.Run(config.simulation_time);
+  sim.Run(config.sim_time);
 
-  return stats;
+  // Get statistics from server
+  auto& stats = server.GetStats();
+  double mean_wait_time = stats.GetEvent("Waiting Time")->Average();
+  double mean_queue_length =
+      stats.GetTimeWeighted("Queue Length")->Average(config.sim_time);
+
+  return SimRunResults{mean_wait_time, mean_queue_length};
 }
 
 /**
@@ -76,130 +79,48 @@ desvu::StatsCollector RunSimulation(SimulationConfig& config,
  */
 void PrintTheoreticalResults(double arrival_rate, double service_rate) {
   if (arrival_rate >= service_rate) {
-    std::cout << "\nNote: System is unstable (ρ >= 1), theoretical values "
-                 "not applicable.\n";
+    std::cout << "\nSystem unstable (ρ >= 1), no theoretical values.\n";
     return;
   }
 
   double rho = arrival_rate / service_rate;
-  double theoretical_avg_queue = (rho * rho) / (1 - rho);
-  double theoretical_avg_waiting = rho / (service_rate * (1 - rho));
-  double theoretical_utilization = rho;
+  double theory_mean_queue = (rho * rho) / (1 - rho);
+  double theory_mean_wait = rho / (service_rate * (1 - rho));
 
-  std::cout << "\n===========================================\n";
-  std::cout << "  Theoretical Values (M/M/1)\n";
-  std::cout << "===========================================\n";
+  std::cout << "\n\nTheoretical Values (M/M/1):\n";
   std::cout << std::fixed << std::setprecision(4);
-  std::cout << "Average queue length (L_q): " << theoretical_avg_queue << "\n";
-  std::cout << "Average waiting time (W_q): " << theoretical_avg_waiting
-            << "\n";
-  std::cout << "Server utilization (ρ): " << theoretical_utilization << "\n";
-}
-
-/**
- * @brief Aggregates results from multiple replications.
- *
- * @param all_stats Vector of StatsCollector from each replication
- * @param sim_time Simulation time used for time-weighted statistics
- */
-void PrintAggregatedResults(
-    const std::vector<desvu::StatsCollector>& all_stats, double sim_time) {
-  // Collect waiting times from all replications
-  desvu::EventStats aggregated_waiting("Waiting Time (All Replications)");
-  desvu::EventStats aggregated_service("Service Time (All Replications)");
-
-  for (const auto& stats : all_stats) {
-    const auto* waiting = stats.GetEvent("Waiting Time");
-    if (waiting) {
-      for (double obs : waiting->Observations()) {
-        aggregated_waiting.Add(obs);
-      }
-    }
-
-    const auto* service = stats.GetEvent("Service Time");
-    if (service) {
-      for (double obs : service->Observations()) {
-        aggregated_service.Add(obs);
-      }
-    }
-  }
-
-  // Collect averages for time-weighted statistics
-  desvu::EventStats avg_queue_length("Average Queue Length per Replication");
-  desvu::EventStats avg_utilization("Average Utilization per Replication");
-
-  for (const auto& stats : all_stats) {
-    const auto* queue = stats.GetTimeWeighted("Queue Length");
-    if (queue) {
-      avg_queue_length.Add(queue->Average(sim_time));
-    }
-
-    const auto* util = stats.GetTimeWeighted("Server Utilization");
-    if (util) {
-      avg_utilization.Add(util->Average(sim_time));
-    }
-  }
-
-  std::cout << "\n===========================================\n";
-  std::cout << "  Aggregated Results Across Replications\n";
-  std::cout << "===========================================\n";
-  std::cout << "\n" << aggregated_waiting.Report() << "\n\n";
-  std::cout << aggregated_service.Report() << "\n\n";
-  std::cout << avg_queue_length.Report() << "\n\n";
-  std::cout << avg_utilization.Report() << "\n";
+  std::cout << "  Mean queue length: " << theory_mean_queue << "\n";
+  std::cout << "  Mean waiting time: " << theory_mean_wait  << "\n";
 }
 
 int main() {
-  std::cout << "===========================================\n";
-  std::cout << "  M/M/1 Queue Simulation\n";
-  std::cout << "===========================================\n";
 
-  // Create configuration
-  SimulationConfig config(
-      10000.0,  // simulation_time
-      0.8,      // arrival_rate
-      1.0,      // service_rate
-      42        // random seed
+  // Create simulation configuration
+  SimulationConfig config(10000.0,  // sim_time
+                          0.8,      // arrival_rate
+                          1.0,      // service_rate
+                          0         // random seed
   );
 
-  std::cout << "Arrival rate: " << config.arrival_rate << "\n";
-  std::cout << "Service rate: " << config.service_rate << "\n";
-  std::cout << "Simulation time: " << config.simulation_time << "\n";
+  // Run multiple simulation runs
+  desvu::StatsCollector stats;
+  const int num_runs = 100;
+  for (int i = 0; i < num_runs; ++i) {
 
-  // Run multiple replications
-  const int NUM_REPLICATIONS = 100;
-  std::cout << "Number of replications: " << NUM_REPLICATIONS << "\n";
-  std::cout << "\n";
+    // Run simulation with config with new seed i
+    SimulationConfig run_config(config.sim_time, config.arrival_rate,
+                                config.service_rate, i);
+    auto run_stats = RunSimulation(run_config, false);
 
-  std::vector<desvu::StatsCollector> all_stats;
-  all_stats.reserve(NUM_REPLICATIONS);
-
-  std::cout << "Running " << NUM_REPLICATIONS << " replications...\n";
-  for (int i = 0; i < NUM_REPLICATIONS; ++i) {
-    // Create new config with different seed for each replication
-    SimulationConfig rep_config(config.simulation_time, config.arrival_rate,
-                                config.service_rate, 42 + i * 100);
-    auto stats = RunSimulation(rep_config, false);
-    all_stats.push_back(std::move(stats));
-    std::cout << "  Completed replication " << (i + 1) << "/"
-              << NUM_REPLICATIONS << "\n";
+    // Store statistics from this run
+    stats.Add("Mean Waiting Time", run_stats.mean_waiting_time);
+    stats.Add("Mean Queue Length", run_stats.mean_queue_length);
   }
 
-  // Print aggregated results
-  PrintAggregatedResults(all_stats, config.simulation_time);
+  std::cout << stats.Report(0.0);
 
   // Print theoretical comparison
   PrintTheoreticalResults(config.arrival_rate, config.service_rate);
 
-  std::cout << "\n===========================================\n";
-  std::cout << "  Single Replication Example\n";
-  std::cout << "===========================================\n";
-  std::cout << "Running one detailed simulation...\n\n";
-
-  SimulationConfig single_config(10000.0, 0.8, 1.0, 999);
-  auto single_stats = RunSimulation(single_config, false);
-  std::cout << single_stats.Report(single_config.simulation_time) << "\n";
-
   return 0;
 }
-

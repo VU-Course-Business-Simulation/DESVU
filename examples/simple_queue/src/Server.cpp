@@ -2,57 +2,46 @@
 
 #include "Events.h"
 
-void Server::HandleArrival(desvu::Simulator& sim, const Customer& customer) {
-  // Update queue length statistics
-  stats_.Add("Queue Length", sim.Now(),
-             static_cast<double>(waiting_queue_.size()));
+Server::Server(desvu::Simulator& sim, SimulationConfig& config)
+    : sim_(sim), config_(config), is_busy_(false), stats_() {}
 
-  if (!is_busy_) {
+void Server::HandleArrival(const Customer& customer) {
+  if (is_busy_) {
+    // Server is busy - join the queue
+    queue_.push(customer);
+    stats_.Add("Queue Length", sim_.Now(),
+               static_cast<double>(queue_.size()));
+  } else {
     // Server is idle - start service immediately
     is_busy_ = true;
-    stats_.Add("Server Utilization", sim.Now(), 1.0);
-
-    // Waiting time is zero
+    stats_.Add("Server Utilization", sim_.Now(), 1.0);
     stats_.Add("Waiting Time", 0.0);
 
     // Schedule departure
     double service_time = config_.NextServiceTime();
-    stats_.Add("Service Time", service_time);
     auto departure = std::make_shared<DepartureEvent>(service_time, this);
-    sim.Schedule(departure);
-  } else {
-    // Server is busy - join the queue
-    waiting_queue_.push(customer);
-
-    // Update queue length
-    stats_.Add("Queue Length", sim.Now(),
-               static_cast<double>(waiting_queue_.size()));
+    sim_.Schedule(departure);
   }
 }
 
-void Server::ServiceCompleted(desvu::Simulator& sim) {
-  if (waiting_queue_.empty()) {
+void Server::ServiceCompleted() {
+  if (queue_.empty()) {
     // No one waiting - server becomes idle
     is_busy_ = false;
-    stats_.Add("Server Utilization", sim.Now(), 0.0);
   } else {
     // Serve next customer in queue
-    Customer next_customer = waiting_queue_.front();
-    waiting_queue_.pop();
-
-    // Update queue length
-    stats_.Add("Queue Length", sim.Now(),
-               static_cast<double>(waiting_queue_.size()));
+    Customer next_customer = queue_.front();
+    queue_.pop();
+    stats_.Add("Queue Length", sim_.Now(),
+               static_cast<double>(queue_.size()));
 
     // Calculate and record waiting time
-    double waiting_time = next_customer.WaitingTime(sim.Now());
+    double waiting_time = next_customer.WaitingTime(sim_.Now());
     stats_.Add("Waiting Time", waiting_time);
 
     // Schedule next departure
     double service_time = config_.NextServiceTime();
-    stats_.Add("Service Time", service_time);
     auto next_departure = std::make_shared<DepartureEvent>(service_time, this);
-    sim.Schedule(next_departure);
+    sim_.Schedule(next_departure);
   }
 }
-

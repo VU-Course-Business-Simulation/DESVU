@@ -16,9 +16,8 @@
  */
 class ArrivalEvent : public desvu::Event {
  private:
-  Server* server_;               ///< Pointer to the server
-  SimulationConfig& config_;     ///< Reference to simulation configuration
-  int& customers_arrived_;       ///< Reference to customer counter
+  Server* server_;            ///< Pointer to the server
+  SimulationConfig& config_;  ///< Reference to simulation configuration
 
  public:
   /**
@@ -26,14 +25,9 @@ class ArrivalEvent : public desvu::Event {
    * @param delay Time until this event occurs
    * @param server Pointer to the server
    * @param config Reference to simulation configuration
-   * @param customers_arrived Reference to customer arrival counter
    */
-  ArrivalEvent(double delay, Server* server, SimulationConfig& config,
-               int& customers_arrived)
-      : Event(delay),
-        server_(server),
-        config_(config),
-        customers_arrived_(customers_arrived) {}
+  ArrivalEvent(double delay, Server* server, SimulationConfig& config)
+      : Event(delay), server_(server), config_(config) {}
 
   void Action(desvu::Simulator& sim) override;
   std::string ToString() const override { return "Arrival"; }
@@ -62,4 +56,3 @@ class DepartureEvent : public desvu::Event {
   void Action(desvu::Simulator& sim) override;
   std::string ToString() const override { return "Departure"; }
 };
-
