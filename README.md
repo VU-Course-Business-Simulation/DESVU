@@ -44,16 +44,16 @@ class PrintEvent : public desvu::Event {
 public:
     explicit PrintEvent(double delay) : Event(delay) {}
     
-    void action(desvu::Simulator& sim) override {
-        std::cout << "Event executed at time " << sim.now() << "\n";
+    void Action(desvu::Simulator& sim) override {
+        std::cout << "Event executed at time " << sim.Now() << "\n";
     }
 };
 
 int main() {
     desvu::Simulator sim;
     auto event = std::make_shared<PrintEvent>(5.0);
-    sim.schedule(event);
-    sim.run(10.0);
+    sim.Schedule(event);
+    sim.Run(10.0);
     return 0;
 }
 ```
@@ -63,7 +63,7 @@ int main() {
 Event executed at time 5
 ```
 
-For a complete M/M/1 queueing system example with arrivals, service, and statistics, see [`examples/simple_queue.cpp`](examples/simple_queue.cpp). TODO: Add more examples (G/G/c).
+For a complete M/M/1 queueing system example with arrivals, service, and statistics, see [`examples/simple_queue/`](examples/simple_queue/). TODO: Add more examples (G/G/c).
 
 ---
 
@@ -78,28 +78,28 @@ class MyEvent : public desvu::Event {
 public:
     explicit MyEvent(double delay) : Event(delay) {}
     
-    void action(desvu::Simulator& sim) override {
+    void Action(desvu::Simulator& sim) override {
         // Your event logic here. It can schedule
-        // new events using sim.schedule(new_event)
+        // new events using sim.Schedule(new_event)
     }
 };
 ```
 
-**Important**: When one event’s `action()` schedules another event type, that other event class must be declared **before** it is used. A common pattern is to put the class declaration in a header file (e.g., `my_event.h`) and its method definitions in a source file (e.g., `my_event.cpp`). Then other events can `#include "my_event.h"` and safely schedule `MyEvent` instances inside their own `action()` methods.
+**Important**: When one event’s `Action()` schedules another event type, that other event class must be declared **before** it is used. A common pattern is to put the class declaration in a header file (e.g., `my_event.h`) and its method definitions in a source file (e.g., `my_event.cpp`). Then other events can `#include "my_event.h"` and safely schedule `MyEvent` instances inside their own `Action()` methods.
 
 ### Simulator
 
 The simulator manages time and executes events in chronological order:
 
-- `sim.now()` - Get current simulation time
-- `sim.schedule(event)` - Schedule an event for future execution
-- `sim.run(until)` - Run simulation until specified time or queue empty
+- `sim.Now()` - Get current simulation time
+- `sim.Schedule(event)` - Schedule an event for future execution
+- `sim.Run(until)` - Run simulation until specified time or queue empty
 
 ### Logging a discrete event simulation
 
 It is often helpful to see a trace of which events fire at what simulation times, especially while developing or debugging your model.
  
-When initializing `Simulator` with `log_events = true` (default is `false`), it will print `Event.to_string()` of all (non-cancelled) `Events` along the way. Override `Event.to_string()` for your own message. Using the same example code from [Quick Start](#quick-start):
+When initializing `Simulator` with `log_events = true` (default is `false`), it will print `Event.ToString()` of all (non-cancelled) `Events` along the way. Override `Event.ToString()` for your own message. Using the same example code from [Quick Start](#quick-start):
 
 ```cpp
 #include <desvu/desvu.h>
@@ -110,16 +110,16 @@ class PrintEvent : public desvu::Event {
 public:
   explicit PrintEvent(double delay) : Event(delay) {}
 
-  void action(desvu::Simulator& sim) override {} // Empty
+  void Action(desvu::Simulator& sim) override {} // Empty
 
-  std::string to_string() const { return "This is MyEvent!"; }
+  std::string ToString() const { return "This is MyEvent!"; }
 };
 
 int main() {
   desvu::Simulator sim(true);
   auto event = std::make_shared<PrintEvent>(5.0);
-  sim.schedule(event);
-  sim.run(10.0);
+  sim.Schedule(event);
+  sim.Run(10.0);
   return 0;
 }
 ```
@@ -164,13 +164,13 @@ Manage multiple statistics with a unified interface:
 ```cpp
 desvu::StatsCollector stats;
 stats.Add("Waiting Time", 5.2);              // Event-based
-stats.Add("Queue Length", sim.now(), 3);      // Time-weighted
-std::cout << stats.Report(sim.now()) << "\n";
+stats.Add("Queue Length", sim.Now(), 3);      // Time-weighted
+std::cout << stats.Report(sim.Now()) << "\n";
 ```
 
 The `StatsCollector` automatically creates statistics on first use:
 - Calling `stats.Add("Waiting Time", 5.2);` creates (if needed) or reuses an `EventStats` named `"Waiting Time"` and records the new observation.
-- Calling `stats.Add("Queue Length", sim.now(), 3);` creates (if needed) or reuses a `TimeWeightedStats` named `"Queue Length"` and updates it with the new time/value pair.
+- Calling `stats.Add("Queue Length", sim.Now(), 3);` creates (if needed) or reuses a `TimeWeightedStats` named `"Queue Length"` and updates it with the new time/value pair.
 
 ---
 
@@ -180,17 +180,17 @@ The `StatsCollector` automatically creates statistics on first use:
 Abstract base class for simulation events.
 
 - **Constructor**: `Event(double delay)` - Create event with specified delay
-- **Virtual method**: `void action(Simulator& sim)` - Implement event behavior
-- **Method**: `void cancel()` - Mark event as cancelled so its action will not be executed when the simulator processes it (it remains queued internally)
-- **Virtual method**: `std::string to_string() const` - Returns a textual description of the event; override this in your own event types to provide meaningful log messages, which are printed when the `Simulator` is constructed with `log_events = true`.
+- **Virtual method**: `void Action(Simulator& sim)` - Implement event behavior
+- **Method**: `void Cancel()` - Mark event as cancelled so its Action will not be executed when the simulator processes it (it remains queued internally)
+- **Virtual method**: `std::string ToString() const` - Returns a textual description of the event; override this in your own event types to provide meaningful log messages, which are printed when the `Simulator` is constructed with `log_events = true`.
 
 ### `desvu::Simulator`
 Discrete event simulation engine.
 
 - **Constructor**: `Simulator(bool log_events = false)`
-- **Method**: `double now() const` - Get current simulation time
-- **Method**: `void schedule(std::shared_ptr<Event> event)` - Schedule an event
-- **Method**: `void run(double until = -1.0)` - Run simulation
+- **Method**: `double Now() const` - Get current simulation time
+- **Method**: `void Schedule(std::shared_ptr<Event> event)` - Schedule an event
+- **Method**: `void Run(double until = -1.0)` - Run simulation
 
 ### `desvu::EventStats`
 Statistics for event-based observations (recorded at specific events).
@@ -201,7 +201,7 @@ Statistics for event-based observations (recorded at specific events).
 - **Method**: `double StandardDeviation() const` - Compute std dev
 - **Method**: `double Min() const` / `double Max() const` - Get extremes
 - **Method**: `size_t Count() const` - Get number of observations
-- **Method**: `std::pair<double, double> ConfidenceInterval(double confidence_level = 0.95) const` - Compute 95% confidence interval (only 95% supported)
+- **Method**: `std::pair<double, double> ConfidenceInterval95() const` - Compute 95% confidence interval
 - **Method**: `std::string Report() const` - Generate formatted report
 
 ### `desvu::TimeWeightedStats`
@@ -232,10 +232,10 @@ Container for managing multiple statistics.
 ```cpp
 // Store in variable first (enables implicit conversion)
 auto event = std::make_shared<MyEvent>(delay);
-sim.schedule(event);
+sim.Schedule(event);
 
 // Cancel a scheduled event (the action will not be executed)
-event->cancel();
+event->Cancel();
 ```
 
 #### Managing Queues
@@ -262,13 +262,13 @@ double value = exp_dist(rng);
 #### Statistics Collection Patterns
 ```cpp
 // Queue length (time-weighted)
-stats.Add("Queue Length", sim.now(), queue.size());
+stats.Add("Queue Length", sim.Now(), queue.size());
 
 // Server utilization (time-weighted)
-stats.Add("Utilization", sim.now(), server_busy ? 1.0 : 0.0);
+stats.Add("Utilization", sim.Now(), server_busy ? 1.0 : 0.0);
 
 // Waiting time (event-based)
-stats.Add("Waiting Time", sim.now() - arrival_time);
+stats.Add("Waiting Time", sim.Now() - arrival_time);
 ```
 
 ---
@@ -298,8 +298,18 @@ desvu/
 │   └── test_stats_collector.cpp
 └── examples/
     ├── CMakeLists.txt
-    ├── simple_queue.cpp
-    └── README.md
+    ├── README.md
+    └── simple_queue/           # M/M/1 queue example
+        ├── CMakeLists.txt
+        ├── README.md
+        └── src/
+            ├── main.cpp
+            ├── SimulationConfig.h
+            ├── Customer.h
+            ├── Server.h
+            ├── Server.cpp
+            ├── Events.h
+            └── Events.cpp
 ```
 
 ---
@@ -396,11 +406,17 @@ ctest --output-on-failure
 ### Running Examples
 
 ```bash
-# In build directory
-./examples/simple_queue
+# In build directory, navigate to the example
+cd examples/simple_queue
+./simple_queue
 
-# On Windows, from the build directory, the executable may be named simple_queue.exe
-# and live under examples/ or cmake-build-debug/examples/ depending on your setup.
+# On Windows
+cd examples\simple_queue
+simple_queue.exe
+
+# Or from build root with full path
+./examples/simple_queue/simple_queue      # Unix-like
+examples\simple_queue\simple_queue.exe    # Windows
 ```
 
 ---
@@ -447,8 +463,8 @@ Use Catch2 framework:
 
 TEST_CASE("Description", "[category]") {
     desvu::Simulator sim;
-    sim.run(10.0);
-    REQUIRE(sim.now() == 10.0);
+    sim.Run(10.0);
+    REQUIRE(sim.Now() == 10.0);
 }
 ```
 

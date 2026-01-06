@@ -1,14 +1,14 @@
 # DESVU Examples
 
-This directory contains an educational example demonstrating discrete event simulation concepts using the DESVU library.
+This directory contains educational examples demonstrating discrete event simulation concepts using the DESVU library.
 
 ## Example Overview
 
-### Simple Queue (`simple_queue.cpp`)
+### Simple Queue (`simple_queue/`)
 
-**Difficulty**: Beginner
+**Difficulty**: Beginner to Intermediate
 
-**Description**: A classic M/M/1 queueing system with exponential interarrival times and exponential service times.
+**Description**: A professionally structured M/M/1 queueing system with exponential interarrival times and exponential service times. This example demonstrates best practices for organizing a discrete event simulation project.
 
 **System Components**:
 - Single server
@@ -26,10 +26,19 @@ This directory contains an educational example demonstrating discrete event simu
 - Queue length (time-weighted)
 - Server utilization (time-weighted)
 
+**Code Organization**:
+- `main.cpp`: Entry point, runs multiple replications
+- `SimulationConfig.h`: Centralized parameters and RNG management
+- `Customer.h`: Customer data structure
+- `Server.h/cpp`: Queue management and business logic
+- `Events.h/cpp`: Event definitions and implementations
+
 **Learning Objectives**:
 - Understanding event scheduling
-- Implementing basic queue operations
+- Implementing modular simulation code
 - Collecting and interpreting statistics
+- Running multiple replications
+- Computing confidence intervals
 - Comparing simulation results with theoretical values
 
 **Key Concepts**:
@@ -37,49 +46,100 @@ This directory contains an educational example demonstrating discrete event simu
 - Stability condition (ρ < 1)
 - Little's Law
 - Time-weighted vs. event-based statistics
+- Common Random Numbers technique
+- Replication analysis
 
 **To Run**:
 ```bash
 # From build directory
-.\simple_queue.exe
+cd cmake-build-debug/examples/simple_queue
+./simple_queue.exe  # Windows
+./simple_queue      # Linux/Mac
 ```
 
 **Expected Output**:
-- Number of customers arrived and departed
-- Average waiting time
-- Average queue length
-- Server utilization
-- Comparison with theoretical M/M/1 values
+- Results aggregated across 10 replications
+- Confidence intervals for key metrics
+- Theoretical M/M/1 values for comparison
+- Detailed single replication example
 
 ---
 
-## Building the Example
+## Building the Examples
 
-### Using CMake
+### Using CMake (Recommended)
 
 ```bash
 # From the project root
-mkdir build
-cd build
-cmake ..
-cmake --build .
+cmake --build cmake-build-debug
 
-# Example will be in the build directory
-.\simple_queue.exe
+# Or rebuild from scratch
+cmake -B cmake-build-debug -S .
+cmake --build cmake-build-debug
 ```
 
-### Manual Compilation
+## Adding New Examples
 
-If you prefer to compile manually:
+DESVU provides helper functions to easily add new examples:
 
-```bash
-# Simple Queue
-g++ -std=c++17 -I../include simple_queue.cpp -o simple_queue
-```
+### Option 1: Simple Single-File Example
 
-## Modifying the Example
+For simple demonstrations that fit in one file:
 
-Students are encouraged to modify this example to explore different scenarios:
+1. Create `my_example.cpp` in the `examples/` directory
+2. Edit `examples/CMakeLists.txt` and add:
+   ```cmake
+   add_desvu_simple_example(my_example)
+   ```
+
+### Option 2: Complex Multi-File Example (Recommended)
+
+For well-structured examples with multiple files:
+
+1. Create a subdirectory: `examples/my_example/`
+2. Add your files:
+   ```
+   my_example/
+   ├── CMakeLists.txt
+   ├── main.cpp
+   ├── SimulationConfig.h
+   ├── MyClass.h
+   ├── MyClass.cpp
+   └── README.md (optional)
+   ```
+
+3. Create `CMakeLists.txt` in your subdirectory:
+   ```cmake
+   add_executable(my_example
+       main.cpp
+       MyClass.cpp
+   )
+   
+   target_include_directories(my_example PRIVATE
+       ${CMAKE_CURRENT_SOURCE_DIR}
+   )
+   
+   target_link_libraries(my_example PRIVATE desvu)
+   ```
+
+4. Edit `examples/CMakeLists.txt` and add:
+   ```cmake
+   add_desvu_subdirectory_example(my_example)
+   ```
+
+### Recommended Structure for Complex Examples
+
+Follow the pattern used in `simple_queue/`:
+
+- **SimulationConfig.h**: All parameters and RNG management
+- **DataStructures.h**: Customer, Job, Entity classes
+- **SystemComponents.h/cpp**: Server, Queue, Resource classes
+- **Events.h/cpp**: All event definitions
+- **main.cpp**: Multiple replication logic and result aggregation
+
+## Modifying the Examples
+
+Students are encouraged to modify the examples to explore different scenarios:
 
 ### Simple Queue Modifications
 
@@ -98,6 +158,10 @@ Students are encouraged to modify this example to explore different scenarios:
 4. **Priority queues**: 
    - Implement customer priorities
    - Track waiting times by priority
+
+5. **Balking/Reneging**:
+   - Customers leave if queue is too long
+   - Track lost customers
 
 5. **Limited queue capacity**:
    - Add maximum queue size
