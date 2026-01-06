@@ -1,6 +1,6 @@
-#include "Server.h"
+#include "server.h"
 
-#include "Events.h"
+#include "events.h"
 
 Server::Server(desvu::Simulator& sim, SimulationConfig& config)
     : sim_(sim), config_(config), is_busy_(false), stats_() {}

@@ -10,36 +10,36 @@ simple_queue/
 ├── README.md               # This file
 └── src/
     ├── main.cpp                # Main entry point, runs multiple replications
-    ├── SimulationConfig.h      # Configuration parameters and RNG management
-    ├── Customer.h              # Customer data structure
-    ├── Server.h                # Server class declaration
+    ├── simulation_config.h      # Configuration parameters and RNG management
+    ├── customer.h              # Customer data structure
+    ├── server.h                # Server class declaration
     ├── Server.cpp              # Server class implementation
-    ├── Events.h                # Event class declarations
-    └── Events.cpp              # Event class implementations
+    ├── events.h                # Event class declarations
+    └── events.cpp              # Event class implementations
 ```
 
 ## Architecture
 
 ### Components
 
-1. **SimulationConfig.h**
+1. **simulation_config.h**
    - Centralizes all simulation parameters
    - Manages random number generators (separate streams for arrivals and service)
    - Provides methods to generate random variates
    - Supports Common Random Numbers technique
 
-2. **Customer.h**
+2. **customer.h**
    - Simple data structure storing customer information
    - Tracks arrival time
    - Calculates waiting time
 
-3. **Server** (Server.h/cpp)
+3. **Server** (server.h/cpp)
    - Manages the customer queue
    - Tracks server state (busy/idle)
    - Handles arrival logic via `HandleArrival()`
    - Handles service completion logic via `ServiceCompleted()`
 
-4. **Events** (Events.h/cpp)
+4. **Events** (events.h/cpp)
    - **ArrivalEvent**: Schedules next arrival and delegates to Server
    - **DepartureEvent**: Delegates to Server for service completion
 
@@ -93,7 +93,7 @@ To modify the simulation:
 1. **Change parameters**: Edit values in `main.cpp` when creating `SimulationConfig`
 2. **Add new statistics**: Add calls to `stats.Add()` in Server methods
 3. **Modify server logic**: Edit `Server::HandleArrival()` or `Server::ServiceCompleted()`
-4. **Add new events**: Create new event classes in Events.h/cpp
+4. **Add new events**: Create new event classes in events.h/cpp
 
 ## Learning Objectives
 

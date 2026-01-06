@@ -1,8 +1,8 @@
-#include "Events.h"
+#include "events.h"
 
 #include <memory>
 
-#include "Customer.h"
+#include "customer.h"
 
 void ArrivalEvent::Action(desvu::Simulator& sim) {
   // Create new customer and delegate to server

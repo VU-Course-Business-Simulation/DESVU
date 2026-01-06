@@ -27,9 +27,9 @@
 #include <iostream>
 #include <memory>
 
-#include "Events.h"
-#include "Server.h"
-#include "SimulationConfig.h"
+#include "events.h"
+#include "server.h"
+#include "simulation_config.h"
 
 /**
  * @brief Result structure returned by RunSimulation.

@@ -28,10 +28,10 @@ This directory contains educational examples demonstrating discrete event simula
 
 **Code Organization**:
 - `main.cpp`: Entry point, runs multiple replications
-- `SimulationConfig.h`: Centralized parameters and RNG management
-- `Customer.h`: Customer data structure
-- `Server.h/cpp`: Queue management and business logic
-- `Events.h/cpp`: Event definitions and implementations
+- `simulation_config.h`: Centralized parameters and RNG management
+- `customer.h`: Customer data structure
+- `server.h/cpp`: Queue management and business logic
+- `events.h/cpp`: Event definitions and implementations
 
 **Learning Objectives**:
 - Understanding event scheduling
@@ -102,7 +102,7 @@ For well-structured examples with multiple files:
    my_example/
    ├── CMakeLists.txt
    ├── main.cpp
-   ├── SimulationConfig.h
+   ├── simulation_config.h
    ├── MyClass.h
    ├── MyClass.cpp
    └── README.md (optional)
@@ -131,10 +131,10 @@ For well-structured examples with multiple files:
 
 Follow the pattern used in `simple_queue/`:
 
-- **SimulationConfig.h**: All parameters and RNG management
+- **simulation_config.h**: All parameters and RNG management
 - **DataStructures.h**: Customer, Job, Entity classes
 - **SystemComponents.h/cpp**: Server, Queue, Resource classes
-- **Events.h/cpp**: All event definitions
+- **events.h/cpp**: All event definitions
 - **main.cpp**: Multiple replication logic and result aggregation
 
 ## Modifying the Examples

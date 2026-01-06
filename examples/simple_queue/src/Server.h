@@ -4,8 +4,8 @@
 
 #include <queue>
 
-#include "Customer.h"
-#include "SimulationConfig.h"
+#include "customer.h"
+#include "simulation_config.h"
 
 /**
  * @brief Manages the server and customer queue.

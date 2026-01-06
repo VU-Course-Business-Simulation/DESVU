@@ -304,12 +304,12 @@ desvu/
         ├── README.md
         └── src/
             ├── main.cpp
-            ├── SimulationConfig.h
-            ├── Customer.h
-            ├── Server.h
+            ├── simulation_config.h
+            ├── customer.h
+            ├── server.h
             ├── Server.cpp
-            ├── Events.h
-            └── Events.cpp
+            ├── events.h
+            └── events.cpp
 ```
 
 ---

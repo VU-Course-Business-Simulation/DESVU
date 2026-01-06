@@ -2,7 +2,7 @@
 
 add_executable(simple_queue
     src/main.cpp
-    src/Events.cpp
+    src/events.cpp
     src/Server.cpp
 )
 

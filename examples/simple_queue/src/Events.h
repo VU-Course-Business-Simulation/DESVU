@@ -4,8 +4,8 @@
 
 #include <string>
 
-#include "Server.h"
-#include "SimulationConfig.h"
+#include "server.h"
+#include "simulation_config.h"
 
 /**
  * @brief Customer arrival event.
