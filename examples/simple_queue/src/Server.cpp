@@ -17,14 +17,11 @@ void Server::HandleArrival(const Customer& customer) {
     stats_.Add("Server Utilization", sim_.Now(), 1.0);
     stats_.Add("Waiting Time", 0.0);
 
-    // Schedule departure
-    double service_time = config_.NextServiceTime();
-    auto departure = std::make_shared<DepartureEvent>(service_time, this);
-    sim_.Schedule(departure);
+    ScheduleServiceCompletion();
   }
 }
 
-void Server::ServiceCompleted() {
+void Server::HandleServiceCompletion() {
   if (queue_.empty()) {
     // No one waiting - server becomes idle
     is_busy_ = false;
@@ -39,9 +36,13 @@ void Server::ServiceCompleted() {
     double waiting_time = next_customer.WaitingTime(sim_.Now());
     stats_.Add("Waiting Time", waiting_time);
 
-    // Schedule next departure
-    double service_time = config_.NextServiceTime();
-    auto next_departure = std::make_shared<DepartureEvent>(service_time, this);
-    sim_.Schedule(next_departure);
+    ScheduleServiceCompletion();
   }
 }
+
+void Server::ScheduleServiceCompletion() {
+  double service_time = config_.NextServiceTime();
+  auto departure = std::make_shared<DepartureEvent>(service_time, this);
+  sim_.Schedule(departure);
+}
+

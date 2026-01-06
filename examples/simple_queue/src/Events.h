@@ -11,8 +11,8 @@
  * @brief Customer arrival event.
  *
  * When a customer arrives:
- * 1. Schedule the next arrival
- * 2. Delegate to Server to handle the arrival
+ * 1. Delegate to Server
+ * 2. Schedule the next arrival
  */
 class ArrivalEvent : public desvu::Event {
  private:
@@ -32,7 +32,6 @@ class ArrivalEvent : public desvu::Event {
   void Action(desvu::Simulator& sim) override;
   std::string ToString() const override { return "Arrival"; }
 };
-
 /**
  * @brief Customer departure event.
  *

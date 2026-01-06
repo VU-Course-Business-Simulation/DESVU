@@ -47,7 +47,15 @@ class Server {
    * If queue is empty, server becomes idle.
    * Otherwise, starts serving the next customer in queue.
    */
-  void ServiceCompleted();
+  void HandleServiceCompletion();
+
+  /**
+   * @brief Schedules a service completion event.
+   *
+   * Generates a service time and schedules a departure event
+   * for when the current customer completes service.
+   */
+  void ScheduleServiceCompletion();
 
   /**
    * @brief Returns the current queue length.
