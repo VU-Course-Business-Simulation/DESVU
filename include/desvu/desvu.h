@@ -23,15 +23,15 @@
  * class ArrivalEvent : public desvu::Event {
  *  public:
  *   explicit ArrivalEvent(double delay) : Event(delay) {}
- *   void action(desvu::Simulator& sim) override {
+ *   void Action(desvu::Simulator& sim) override {
  *     // Handle customer arrival
  *   }
  * };
  *
  * int main() {
  *   desvu::Simulator sim;
- *   sim.schedule(std::make_shared<ArrivalEvent>(0.0));
- *   sim.run(100.0);
+ *   sim.Schedule(std::make_shared<ArrivalEvent>(0.0));
+ *   sim.Run(100.0);
  *   return 0;
  * }
  * @endcode

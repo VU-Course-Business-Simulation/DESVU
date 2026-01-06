@@ -11,7 +11,7 @@ class Simulator;
  * @brief Abstract base class for simulation events.
  *
  * Events represent actions that occur at specific simulation times.
- * Derived classes must implement the action() method.
+ * Derived classes must implement the Action() method.
  */
 class Event {
  public:
@@ -29,20 +29,24 @@ class Event {
 
   /**
    * @brief Cancels this event, preventing its execution.
+   *
+   * The event is not removed from the simulator's internal event queue.
+   * Instead, when the simulator dequeues this event at its scheduled time,
+   * it will detect that the event is cancelled and skip calling Action().
    */
-  void cancel() { cancelled = true; }
+  void Cancel() { cancelled = true; }
 
   /**
    * @brief Executes the event action.
    * @param sim Reference to the simulator
    */
-  virtual void action(Simulator& sim) = 0;
+  virtual void Action(Simulator& sim) = 0;
 
   /**
    * @brief Returns a string representation of the event.
    * @return String describing the event
    */
-  virtual std::string to_string() const { return "Event()"; }
+  virtual std::string ToString() const { return "Event()"; }
 };
 
 }  // namespace desvu

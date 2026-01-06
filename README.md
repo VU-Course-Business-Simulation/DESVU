@@ -14,7 +14,7 @@ A lightweight, educational discrete event simulation (DES) library designed for 
 - ✅ **Clear, documented API** - Designed specifically for learning
 - ✅ **Educational examples** - Complete working simulation with explanation
 - ✅ **Modern C++17** - Clean, modern code following best practices
-- ✅ **Comprehensive tests** - 43 unit tests using Catch2
+- ✅ **Comprehensive tests** - Unit tests using Catch2
 
 ---
 
@@ -67,45 +67,6 @@ For a complete M/M/1 queueing system example with arrivals, service, and statist
 
 ---
 
-## Installation
-
-### Method 1: CMake FetchContent (Recommended)
-
-```cmake
-# Disable building tests and examples for DESVU.
-# These options are defined in the DESVU repository's CMakeLists.txt.
-# The description strings (3rd parameter) appear in CMake GUI tools.
-set(DESVU_BUILD_TESTS OFF CACHE BOOL "Build DESVU tests" FORCE)
-set(DESVU_BUILD_EXAMPLES OFF CACHE BOOL "Build DESVU examples" FORCE)
-
-# Declare the DESVU library with its Git repository location
-# GIT_TAG specifies the branch or version to fetch
-FetchContent_Declare(
-    desvu
-    GIT_REPOSITORY https://github.com/VU-Course-Business-Simulation/DESVU.git
-    GIT_TAG main  # Using main branch; could be changed to a specific version tag like v1.0.0
-)
-
-# Download and make the DESVU library available to the project
-# The library target 'desvu' will be created by the repository's CMakeLists.txt
-# as an INTERFACE library with the correct include directories
-FetchContent_MakeAvailable(desvu)
-
-add_executable(your_target main.cpp)
-
-target_link_libraries(your_target PRIVATE desvu)
-```
-
-### Method 2: Direct Include
-
-Copy `include/desvu/` to your project:
-
-```cmake
-target_include_directories(your_target PRIVATE path/to/include)
-```
-
----
-
 ## Core Concepts
 
 ### Events
@@ -118,35 +79,13 @@ public:
     explicit MyEvent(double delay) : Event(delay) {}
     
     void action(desvu::Simulator& sim) override {
-        // Your event logic here
-        // Can schedule new events using sim.schedule()
+        // Your event logic here. It can schedule
+        // new events using sim.schedule(new_event)
     }
 };
 ```
 
-**Key Pattern**: When scheduling an event of a type that has not been fully defined yet, you must first declare all event classes before implementing their `action()` methods. This allows forward references:
-
-```cpp
-// Declare both classes first
-class ArrivalEvent : public desvu::Event {
-public:
-    explicit ArrivalEvent(double delay) : Event(delay) {}
-    void action(desvu::Simulator& sim) override;
-};
-
-class DepartureEvent : public desvu::Event {
-public:
-    explicit DepartureEvent(double delay) : Event(delay) {}
-    void action(desvu::Simulator& sim) override;
-};
-
-// Then implement action() methods
-void ArrivalEvent::action(desvu::Simulator& sim) {
-    // Can now create and schedule DepartureEvent
-    auto departure = std::make_shared<DepartureEvent>(service_time);
-    sim.schedule(departure);
-}
-```
+**Important**: When one event’s `action()` schedules another event type, that other event class must be declared **before** it is used. A common pattern is to put the class declaration in a header file (e.g., `my_event.h`) and its method definitions in a source file (e.g., `my_event.cpp`). Then other events can `#include "my_event.h"` and safely schedule `MyEvent` instances inside their own `action()` methods.
 
 ### Simulator
 
@@ -155,6 +94,40 @@ The simulator manages time and executes events in chronological order:
 - `sim.now()` - Get current simulation time
 - `sim.schedule(event)` - Schedule an event for future execution
 - `sim.run(until)` - Run simulation until specified time or queue empty
+
+### Logging a discrete event simulation
+
+It is often helpful to see a trace of which events fire at what simulation times, especially while developing or debugging your model.
+ 
+When initializing `Simulator` with `log_events = true` (default is `false`), it will print `Event.to_string()` of all (non-cancelled) `Events` along the way. Override `Event.to_string()` for your own message. Using the same example code from [Quick Start](#quick-start):
+
+```cpp
+#include <desvu/desvu.h>
+#include <iostream>
+#include <memory>
+
+class PrintEvent : public desvu::Event {
+public:
+  explicit PrintEvent(double delay) : Event(delay) {}
+
+  void action(desvu::Simulator& sim) override {} // Empty
+
+  std::string to_string() const { return "This is MyEvent!"; }
+};
+
+int main() {
+  desvu::Simulator sim(true);
+  auto event = std::make_shared<PrintEvent>(5.0);
+  sim.schedule(event);
+  sim.run(10.0);
+  return 0;
+}
+```
+**Output:**
+```
+t=   5.0 | This is MyEvent!
+```
+This is useful for debugging and testing correctness of your simulation!
 
 ### Statistics
 
@@ -195,18 +168,21 @@ stats.Add("Queue Length", sim.now(), 3);      // Time-weighted
 std::cout << stats.Report(sim.now()) << "\n";
 ```
 
+The `StatsCollector` automatically creates statistics on first use:
+- Calling `stats.Add("Waiting Time", 5.2);` creates (if needed) or reuses an `EventStats` named `"Waiting Time"` and records the new observation.
+- Calling `stats.Add("Queue Length", sim.now(), 3);` creates (if needed) or reuses a `TimeWeightedStats` named `"Queue Length"` and updates it with the new time/value pair.
+
 ---
 
 ## API Reference
-
-TODO: Organize elsewhere.
 
 ### `desvu::Event`
 Abstract base class for simulation events.
 
 - **Constructor**: `Event(double delay)` - Create event with specified delay
 - **Virtual method**: `void action(Simulator& sim)` - Implement event behavior
-- **Method**: `void cancel()` - Cancel this event
+- **Method**: `void cancel()` - Mark event as cancelled so its action will not be executed when the simulator processes it (it remains queued internally)
+- **Virtual method**: `std::string to_string() const` - Returns a textual description of the event; override this in your own event types to provide meaningful log messages, which are printed when the `Simulator` is constructed with `log_events = true`.
 
 ### `desvu::Simulator`
 Discrete event simulation engine.
@@ -297,17 +273,110 @@ stats.Add("Waiting Time", sim.now() - arrival_time);
 
 ---
 
+## Project Structure
+
+```
+desvu/
+├── CMakeLists.txt              # Root build configuration
+├── README.md                   # This file
+├── LICENSE                     # MIT License
+├── include/
+│   └── desvu/
+│       ├── desvu.h            # Main header (includes all)
+│       ├── core/
+│       │   ├── event.h        # Event base class
+│       │   └── simulator.h    # Simulation engine
+│       └── stats/
+│           ├── event_stats.h           # Event-based statistics
+│           ├── time_weighted_stats.h   # Time-weighted statistics
+│           └── stats_collector.h       # Statistics container
+├── tests/
+│   ├── CMakeLists.txt
+│   ├── test_simulator.cpp
+│   ├── test_event_stats.cpp
+│   ├── test_time_weighted_stats.cpp
+│   └── test_stats_collector.cpp
+└── examples/
+    ├── CMakeLists.txt
+    ├── simple_queue.cpp
+    └── README.md
+```
+
+---
+
+## Installation
+
+DESVU is automatically installed in the Business Simulation JetBrains Academy course. To use DESVU in your own CMake project, first create a normal CMake-based C++ project (with its own `CMakeLists.txt`), then choose **one** of the methods below and add the shown snippets to **your** project’s `CMakeLists.txt`.
+
+### Method 1: CMake FetchContent (Recommended)
+
+This is also the method used to install DESVU in the Business Simulation JetBrains Academy course. In your top-level `CMakeLists.txt` (or wherever you configure dependencies):
+
+```cmake
+# Disable building tests and examples for DESVU.
+# These options are defined in the DESVU repository's CMakeLists.txt.
+# The description strings (3rd parameter) appear in CMake GUI tools.
+set(DESVU_BUILD_TESTS OFF CACHE BOOL "Build DESVU tests" FORCE)
+set(DESVU_BUILD_EXAMPLES OFF CACHE BOOL "Build DESVU examples" FORCE)
+
+# Declare the DESVU library with its Git repository location
+# GIT_TAG specifies the branch or version to fetch
+FetchContent_Declare(
+    desvu
+    GIT_REPOSITORY https://github.com/VU-Course-Business-Simulation/DESVU.git
+    GIT_TAG main  # Using main branch; could be changed to a specific version tag like v1.0.0
+)
+
+# Download and make the DESVU library available to the project
+# The library target 'desvu' will be created by the repository's CMakeLists.txt
+# as an INTERFACE library with the correct include directories
+FetchContent_MakeAvailable(desvu)
+
+# Your own executable target that uses DESVU
+add_executable(your_target your_main.cpp)
+
+# Link your executable against the DESVU interface library
+target_link_libraries(your_target PRIVATE desvu)
+```
+
+### Method 2: Direct Include
+
+If you prefer to vendor the headers directly, copy the `include/desvu/` directory from this repository into your project (for example under `external/desvu/`), then add the include path in your `CMakeLists.txt`:
+
+```cmake
+add_executable(your_target your_main.cpp)
+
+target_include_directories(your_target PRIVATE path/to/include)
+# Example: external/desvu/include
+```
+
+Use `#include <desvu/desvu.h>` (or individual headers under `desvu/core/` and `desvu/stats/`) from your own source files.
+
+---
+
 ## Building and Testing
 
-TODO: Check correctness.
+If you would like to build the project yourself, run the tests or the examples, follow the steps below.
+
+> **Note on environments**
+> - The commands below are shown in a Unix-style shell form. On Windows PowerShell 5.1, either run each line separately or replace `&&` with `;`.
+> - You need a working C++ toolchain (e.g., GCC, Clang, or MSVC) and a matching CMake generator (e.g., Ninja, NMake, or Makefiles). Use whatever toolchain you normally use for CMake-based C++ projects.
 
 ### Clone and Build
 
 ```bash
 git clone https://github.com/VU-Course-Business-Simulation/DESVU.git
 cd desvu
-mkdir build && cd build
+mkdir build
+cd build
 cmake ..
+cmake --build .
+```
+
+If you want to use a specific generator (for example, MinGW Makefiles on Windows, which Clion automatically installs), you can pass it explicitly:
+
+```bash
+cmake .. -G "MinGW Makefiles"
 cmake --build .
 ```
 
@@ -330,8 +399,8 @@ ctest --output-on-failure
 # In build directory
 ./examples/simple_queue
 
-# Or from project root
-./cmake-build-debug/examples/simple_queue.exe
+# On Windows, from the build directory, the executable may be named simple_queue.exe
+# and live under examples/ or cmake-build-debug/examples/ depending on your setup.
 ```
 
 ---
@@ -422,37 +491,6 @@ This library is designed for teaching discrete event simulation in operations re
 Compatible with GCC 7+, Clang 5+, MSVC 2017+, AppleClang 10+
 
 TODO: Check correctness of compatibability -> Github Actions?
-
----
-
-## Project Structure
-
-```
-desvu/
-├── CMakeLists.txt              # Root build configuration
-├── README.md                   # This file
-├── LICENSE                     # MIT License
-├── include/
-│   └── desvu/
-│       ├── desvu.h            # Main header (includes all)
-│       ├── core/
-│       │   ├── event.h        # Event base class
-│       │   └── simulator.h    # Simulation engine
-│       └── stats/
-│           ├── event_stats.h           # Event-based statistics
-│           ├── time_weighted_stats.h   # Time-weighted statistics
-│           └── stats_collector.h       # Statistics container
-├── tests/
-│   ├── CMakeLists.txt
-│   ├── test_simulator.cpp
-│   ├── test_event_stats.cpp
-│   ├── test_time_weighted_stats.cpp
-│   └── test_stats_collector.cpp
-└── examples/
-    ├── CMakeLists.txt
-    ├── simple_queue.cpp
-    └── README.md
-```
 
 ---
 

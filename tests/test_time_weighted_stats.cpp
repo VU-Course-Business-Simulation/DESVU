@@ -75,6 +75,7 @@ TEST_CASE("TimeWeightedStats zero duration", "[time_weighted_stats]") {
 
   // No time passes, so average depends on end_time
   REQUIRE(stats.Average(0.0) == 0.0);  // No time passed
+  REQUIRE(stats.Average(1.0) == 15.0);
   REQUIRE(stats.LastValue() == 15.0);
 }
 

@@ -78,16 +78,16 @@ class Simulator {
    * @brief Returns the current simulation time.
    * @return Current time
    */
-  double now() const { return time; }
+  double Now() const { return time; }
 
   /**
    * @brief Schedules an event for future execution.
    *
-   * The event will execute at time now() + event->delay.
+   * The event will execute at time Now() + event->delay.
    *
    * @param event Shared pointer to the event to schedule
    */
-  void schedule(const std::shared_ptr<Event>& event) {
+  void Schedule(const std::shared_ptr<Event>& event) {
     event->time = time + event->delay;
     event_queue.emplace(event->time, event_counter++, event);
   }
@@ -100,7 +100,7 @@ class Simulator {
    *
    * @param until Maximum simulation time (-1.0 for unlimited)
    */
-  void run(double until = -1.0) {
+  void Run(double until = -1.0) {
     while (!event_queue.empty()) {
       auto [event_time, id, event] = event_queue.top();
       event_queue.pop();
@@ -116,9 +116,9 @@ class Simulator {
 
       if (log_events)
         std::cout << "t=" << std::setw(6) << std::setprecision(1) << std::fixed
-                  << time << " | " << event->to_string() << "\n";
+                  << time << " | " << event->ToString() << "\n";
 
-      event->action(*this);
+      event->Action(*this);
     }
   }
 };

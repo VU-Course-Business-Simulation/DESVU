@@ -68,8 +68,8 @@ int customers_departed = 0;
 class ArrivalEvent : public desvu::Event {
  public:
   explicit ArrivalEvent(double delay) : Event(delay) {}
-  void action(desvu::Simulator& sim) override;
-  std::string to_string() const override { return "Arrival"; }
+  void Action(desvu::Simulator& sim) override;
+  std::string ToString() const override { return "Arrival"; }
 };
 
 /**
@@ -82,31 +82,31 @@ class ArrivalEvent : public desvu::Event {
 class DepartureEvent : public desvu::Event {
  public:
   explicit DepartureEvent(double delay) : Event(delay) {}
-  void action(desvu::Simulator& sim) override;
-  std::string to_string() const override { return "Departure"; }
+  void Action(desvu::Simulator& sim) override;
+  std::string ToString() const override { return "Departure"; }
 };
 
 // ============================================================================
 // Event Implementations
 // ============================================================================
 
-void ArrivalEvent::action(desvu::Simulator& sim) {
+void ArrivalEvent::Action(desvu::Simulator& sim) {
   customers_arrived++;
-  double arrival_time = sim.now();
+  double arrival_time = sim.Now();
 
   // Schedule next arrival (Poisson process)
   double next_interarrival = interarrival_dist(rng);
   auto next_arrival = std::make_shared<ArrivalEvent>(next_interarrival);
-  sim.schedule(next_arrival);
+  sim.Schedule(next_arrival);
 
   // Update queue length statistics
-  stats.Add("Queue Length", sim.now(),
+  stats.Add("Queue Length", sim.Now(),
             static_cast<double>(waiting_queue.size()));
 
   if (!server_busy) {
     // Server is idle - start service immediately
     server_busy = true;
-    stats.Add("Server Utilization", sim.now(), 1.0);
+    stats.Add("Server Utilization", sim.Now(), 1.0);
 
     // Waiting time is zero
     stats.Add("Waiting Time", 0.0);
@@ -115,42 +115,42 @@ void ArrivalEvent::action(desvu::Simulator& sim) {
     double service_time = service_dist(rng);
     stats.Add("Service Time", service_time);
     auto departure = std::make_shared<DepartureEvent>(service_time);
-    sim.schedule(departure);
+    sim.Schedule(departure);
   } else {
     // Server is busy - join the queue
     waiting_queue.push(arrival_time);
 
     // Update queue length
-    stats.Add("Queue Length", sim.now(),
+    stats.Add("Queue Length", sim.Now(),
               static_cast<double>(waiting_queue.size()));
   }
 }
 
-void DepartureEvent::action(desvu::Simulator& sim) {
+void DepartureEvent::Action(desvu::Simulator& sim) {
   customers_departed++;
 
   if (waiting_queue.empty()) {
     // No one waiting - server becomes idle
     server_busy = false;
-    stats.Add("Server Utilization", sim.now(), 0.0);
+    stats.Add("Server Utilization", sim.Now(), 0.0);
   } else {
     // Serve next customer in queue
     double arrival_time = waiting_queue.front();
     waiting_queue.pop();
 
     // Update queue length
-    stats.Add("Queue Length", sim.now(),
+    stats.Add("Queue Length", sim.Now(),
               static_cast<double>(waiting_queue.size()));
 
     // Calculate and record waiting time
-    double waiting_time = sim.now() - arrival_time;
+    double waiting_time = sim.Now() - arrival_time;
     stats.Add("Waiting Time", waiting_time);
 
     // Schedule next departure
     double service_time = service_dist(rng);
     stats.Add("Service Time", service_time);
     auto next_departure = std::make_shared<DepartureEvent>(service_time);
-    sim.schedule(next_departure);
+    sim.Schedule(next_departure);
   }
 }
 
@@ -177,12 +177,12 @@ int main() {
 
   // Schedule first arrival at time 0
   auto first_arrival = std::make_shared<ArrivalEvent>(0.0);
-  sim.schedule(first_arrival);
+  sim.Schedule(first_arrival);
 
   // Run simulation
   const double SIM_TIME = 10000.0;
   std::cout << "Running simulation for " << SIM_TIME << " time units...\n\n";
-  sim.run(SIM_TIME);
+  sim.Run(SIM_TIME);
 
   // Print results
   std::cout << "===========================================\n";
@@ -195,7 +195,7 @@ int main() {
   std::cout << "\n";
 
   // Print statistics
-  std::cout << stats.Report(sim.now()) << "\n\n";
+  std::cout << stats.Report(sim.Now()) << "\n\n";
 
   // Theoretical comparison (for stable M/M/1 with ρ < 1)
   if (ARRIVAL_RATE < SERVICE_RATE) {
