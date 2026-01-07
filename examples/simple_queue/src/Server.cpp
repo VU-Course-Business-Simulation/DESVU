@@ -42,7 +42,7 @@ void Server::HandleServiceCompletion() {
 
 void Server::ScheduleServiceCompletion() {
   double service_time = config_.NextServiceTime();
-  auto departure = std::make_shared<DepartureEvent>(service_time, this);
-  sim_.Schedule(departure);
+  auto completion = std::make_shared<ServiceCompletionEvent>(service_time, this);
+  sim_.Schedule(completion);
 }
 

@@ -41,7 +41,7 @@ simple_queue/
 
 4. **Events** (events.h/cpp)
    - **ArrivalEvent**: Schedules next arrival and delegates to Server
-   - **DepartureEvent**: Delegates to Server for service completion
+   - **ServiceCompletionEvent**: Delegates to Server for service completion
 
 5. **main.cpp**
    - Contains `RunSimulation()` function for single replication

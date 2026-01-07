@@ -233,7 +233,7 @@ If you encounter problems or have questions about the example:
 
 **Events**:
 - `ArrivalEvent`: Customer arrives at the system
-- `DepartureEvent`: Customer completes service and leaves
+- `ServiceCompletionEvent`: Customer completes service and leaves
 
 **Statistics Collected**:
 - Waiting time (event-based)

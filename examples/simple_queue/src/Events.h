@@ -33,25 +33,25 @@ class ArrivalEvent : public desvu::Event {
   std::string ToString() const override { return "Arrival"; }
 };
 /**
- * @brief Customer departure event.
+ * @brief Service completion event.
  *
  * When a customer completes service:
  * 1. Increment departure counter
  * 2. Delegate to Server to handle service completion
  */
-class DepartureEvent : public desvu::Event {
+class ServiceCompletionEvent : public desvu::Event {
  private:
   Server* server_;  ///< Pointer to the server
 
  public:
   /**
-   * @brief Constructs a departure event.
+   * @brief Constructs a service completion event.
    * @param delay Time until this event occurs
    * @param server Pointer to the server
    */
-  DepartureEvent(double delay, Server* server)
+  ServiceCompletionEvent(double delay, Server* server)
       : Event(delay), server_(server) {}
 
   void Action(desvu::Simulator& sim) override;
-  std::string ToString() const override { return "Departure"; }
+  std::string ToString() const override { return "ServiceCompletion"; }
 };

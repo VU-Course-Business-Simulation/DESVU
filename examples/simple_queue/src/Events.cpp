@@ -16,7 +16,7 @@ void ArrivalEvent::Action(desvu::Simulator& sim) {
   sim.Schedule(next_arrival);
 }
 
-void DepartureEvent::Action(desvu::Simulator& sim) {
+void ServiceCompletionEvent::Action(desvu::Simulator& sim) {
   // Delegate to server to handle service completion
   server_->HandleServiceCompletion();
 }
