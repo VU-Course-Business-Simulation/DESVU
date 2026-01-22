@@ -187,10 +187,10 @@ Abstract base class for simulation events.
 ### `desvu::Simulator`
 Discrete event simulation engine.
 
-- **Constructor**: `Simulator(bool log_events = false)`
+- **Constructor**: `Simulator(bool log_events = false)` - When `log\_events = true` the DES log is printed.
 - **Method**: `double Now() const` - Get current simulation time
 - **Method**: `void Schedule(std::shared_ptr<Event> event)` - Schedule an event
-- **Method**: `void Run(double until = -1.0)` - Run simulation
+- **Method**: `void Run(double until = -1.0)` - Run the simulation until time `until` or the event queue is empty, whichever happens first. It processes events at time `until` as well.
 
 ### `desvu::EventStats`
 Statistics for event-based observations (recorded at specific events).
@@ -202,7 +202,7 @@ Statistics for event-based observations (recorded at specific events).
 - **Method**: `double Min() const` / `double Max() const` - Get extremes
 - **Method**: `size_t Count() const` - Get number of observations
 - **Method**: `std::pair<double, double> ConfidenceInterval95() const` - Compute 95% confidence interval
-- **Method**: `std::string Report() const` - Generate formatted report
+- **Method**: `std::string Report() const` - Generate formatted report with `name`
 
 ### `desvu::TimeWeightedStats`
 Statistics for time-weighted values.
@@ -211,7 +211,7 @@ Statistics for time-weighted values.
 - **Method**: `void Update(double time, double value)` - Update value at time
 - **Method**: `double Average(double end_time) const` - Compute time-weighted average
 - **Method**: `double Min() const` / `double Max() const` - Get extremes
-- **Method**: `std::string Report(double end_time) const` - Generate report
+- **Method**: `std::string Report(double end_time) const` - Generate formatted report with `name`
 
 ### `desvu::StatsCollector`
 Container for managing multiple statistics.
