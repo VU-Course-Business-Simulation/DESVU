@@ -205,7 +205,7 @@ Statistics for event-based observations (recorded at specific events).
 - **Method**: `std::string Report() const` - Generate formatted report with `name`
 
 ### `desvu::TimeWeightedStats`
-Statistics for time-weighted values.
+Statistics for time-weighted values (initialized with value 0 at time 0).
 
 - **Constructor**: `TimeWeightedStats(const std::string& name)`
 - **Method**: `void Update(double time, double value)` - Update value at time
